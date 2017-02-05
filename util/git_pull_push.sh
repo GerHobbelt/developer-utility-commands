@@ -12,7 +12,7 @@ echo "git repository base directory: $wd"
 cd "$wd"
 
 
-getopts ":RcCfFqQpPlsh" opt
+getopts ":RcCfFqQpPwWlsh" opt
 #echo opt+arg = "$opt$OPTARG"
 case "$opt$OPTARG" in
 "?" )
@@ -25,9 +25,9 @@ case "$opt$OPTARG" in
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
-    git push --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -45,17 +45,17 @@ f )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
-    git push --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   echo processing MAIN REPO: $wd
   $@
-  git fetch --tags                                                        2>&1
-  git pull --all                                                          2>&1
-  git push --all                                                          2>&1
+  git fetch --all --tags                                                  2>&1
+  git pull --ff-only                                                      2>&1
+  git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
   ;;
 
@@ -71,17 +71,17 @@ F )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
-    git push --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   echo processing MAIN REPO: $wd
   $@
-  git fetch --tags                                                        2>&1
-  git pull --all                                                          2>&1
-  git push --all                                                          2>&1
+  git fetch --all --tags                                                  2>&1
+  git pull --ff-only                                                      2>&1
+  git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
   ;;
 
@@ -97,9 +97,9 @@ q )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
-    git push --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -117,9 +117,9 @@ Q )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
-    git push --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -137,14 +137,14 @@ p )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   echo processing MAIN REPO: $wd
   $@
-  git fetch --tags                                                        2>&1
-  git pull --all                                                          2>&1
+  git fetch --all --tags                                                  2>&1
+  git pull --ff-only                                                      2>&1
   ;;
 
 P )
@@ -159,14 +159,58 @@ P )
     cd $f
     #echo $@
     $@
-    git fetch --tags                                                      2>&1
-    git pull --all                                                        2>&1
+    git fetch --all --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   echo processing MAIN REPO: $wd
   $@
-  git fetch --tags                                                        2>&1
-  git pull --all                                                          2>&1
+  git fetch --all --tags                                                  2>&1
+  git pull --ff-only                                                      2>&1
+  ;;
+
+w )
+  echo "--- push the git repo and its submodules ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+  #echo args: $@
+  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    #echo $@
+    $@
+    git push --all --follow-tags                                          2>&1
+    git push --tags                                                       2>&1
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  echo processing MAIN REPO: $wd
+  $@
+  git push --all --follow-tags                                            2>&1
+  git push --tags                                                         2>&1
+  ;;
+
+W )
+  echo "--- push the git repo and its immediate submodules ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+  #echo args: $@
+  for f in $( git submodule foreach --quiet pwd ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    #echo $@
+    $@
+    git push --all --follow-tags                                          2>&1
+    git push --tags                                                       2>&1
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  echo processing MAIN REPO: $wd
+  $@
+  git push --all --follow-tags                                            2>&1
+  git push --tags                                                         2>&1
   ;;
 
 R )
@@ -199,16 +243,16 @@ l )
   done
   #echo $@
   $@
-  git fetch --tags --recurse-submodules=on-demand                         2>&1
-  git pull --all --recurse-submodules=on-demand                           2>&1
+  git fetch --all --tags --recurse-submodules=on-demand                   2>&1
+  git pull --ff-only --recurse-submodules=on-demand                       2>&1
   # report which submodules need attention (they will be done automatically, but it doesn't hurt to report them, in case things go pearshaped)
-  git push --all --recurse-submodules=check                               2>&1
+  git push --all --follow-tags --recurse-submodules=check                 2>&1
   git push --all --recurse-submodules=on-demand                           2>&1
 
   # even when the above commands b0rk, pull/push this repo anyway
-  git fetch --tags                                                        2>&1
-  git pull --all                                                          2>&1
-  git push --all                                                          2>&1
+  git fetch --all --tags                                                  2>&1
+  git pull --ff-only                                                      2>&1
+  git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
   ;;
 
@@ -229,6 +273,8 @@ c )
     git gc
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
+    git repack -d
+    git repack -A
     #git update-ref
     git gc --aggressive --prune=all
     git remote update --prune
@@ -240,6 +286,8 @@ c )
   git gc
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
+  git repack -d
+  git repack -A
   #git update-ref
   git gc --aggressive --prune=all
   git remote update --prune
@@ -263,6 +311,8 @@ C )
     git gc
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
+    git repack -d
+    git repack -A
     #git update-ref
     git gc --aggressive --prune=all
     git remote update --prune
@@ -274,6 +324,8 @@ C )
   git gc
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
+  git repack -d
+  git repack -A
   #git update-ref
   git gc --aggressive --prune=all
   git remote update --prune
@@ -315,6 +367,8 @@ pull & push all git repositories in the current path.
 -Q       : pull/push all the top level git submodules ONLY (not the main project).
 -p       : only PULL this git repository and the git submodules.
 -P       : only PULL this git repository and the top level git submodules.
+-w       : only PUSH this git repository and the git submodules.
+-W       : only PUSH this git repository and the top level git submodules.
 -c       : cleanup git repositories: run this when you get
            error 'does not point to valid object'
 -C       : cleanup top level git repositories: run this when you get

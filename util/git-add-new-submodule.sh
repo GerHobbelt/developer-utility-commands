@@ -189,7 +189,7 @@ else
 
 ** ERROR **
 
-Failed to instatiate the local submodule clone!
+Failed to instantiate the local submodule clone!
 
 EOT
 fi
