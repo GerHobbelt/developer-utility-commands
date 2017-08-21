@@ -49,6 +49,7 @@ try {
         var re_pullreqs = /^\s*#\d+ opened on \d+ [a-zA-Z]+(?: \d+)? by ([^\s]+)/;
         var re_pullreqs1 = /^\s*#\d+ opened on [a-zA-Z]+ \d+(?:, \d+)? by ([^\s]+)/;
         var re_pullreqs2 = /^\s*#\d+ opened \d+ [a-zA-Z]+ ago by ([^\s]+)/;
+        var re_pullreqs3 = /^\s*#\d+ by ([^\s]+) was /;
         var re_memberlist = /^\s*@([^\s]+) [^\/]+\/\s*([^\s]+)\s*$/;  
         var re_gitremote = /^\s*([^\s]+)\s+([^\s]+\.git)\s*\s+\(fetch\)\s*$/;
 
@@ -58,8 +59,9 @@ try {
             var m1 = re_pullreqs.exec(l);
             var m1a = re_pullreqs2.exec(l);
             var m1b = re_pullreqs1.exec(l);
+            var m1c = re_pullreqs3.exec(l);
             var m2 = re_memberlist.exec(l);
-            if (!!m1 + !!m2 + !!m1a + !!m1b >= 2) {
+            if (!!m1 + !!m2 + !!m1a + !!m1b + !!m1c >= 2) {
                 console.error('### unexpected double/triple match for line: ', l);
                 abortus_provocatus();
             }
@@ -74,6 +76,10 @@ try {
             if (m1b) {
                 m1b[2] = default_repo_name;
                 return m1b;
+            }
+            if (m1c) {
+                m1c[2] = default_repo_name;
+                return m1c;
             }
             if (!m2) {
                 m2 = re_gitremote.exec(l);

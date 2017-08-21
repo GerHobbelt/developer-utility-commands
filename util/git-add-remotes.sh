@@ -110,6 +110,7 @@ EOT
                 git remote -v > $dst
                 popd                                                                                                     2> /dev/null  > /dev/null
                 node $utildir/git-add-remotes-helper.js $repo $dst | json users | json -a name repo | while read author clonename ; do
+                    echo "git remote add ${author} ${clonename}"
                     git remote add ${author} ${clonename}
                 done
                 rm $dst
@@ -120,6 +121,7 @@ EOT
                 # http://unix.stackexchange.com/questions/41232/loop-through-tab-delineated-file-in-bash-script
                 # This code requires `npm install json -g` (jsontools: http://trentm.com/json/ )
                 node $utildir/git-add-remotes-helper.js $repo $networkmeta | json users | json -a name repo | while read author clonename ; do
+                    echo "git remote add ${author} git://github.com/$author/$clonename.git"
                     git remote add ${author} git://github.com/$author/$clonename.git
                 done
             else
