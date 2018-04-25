@@ -1,4 +1,6 @@
-fs = require('fs');
+var fs = require('fs');
+
+const DEBUG = false;
 
 function abortus_provocatus() {
     var ex = new Error();
@@ -16,6 +18,13 @@ try {
 
     var default_repo_name = args[2];
     var file = args[3];
+
+    if (DEBUG) {
+        console.log(`DEBUG: 
+    repo name...... = ${default_repo_name}
+    data input file = ${file}
+`);
+    }
 
     fs.readFile(file, 'utf8', function (err, data) {
       if (err) {
@@ -50,8 +59,11 @@ try {
         var re_pullreqs1 = /^\s*#\d+ opened on [a-zA-Z]+ \d+(?:, \d+)? by ([^\s]+)/;
         var re_pullreqs2 = /^\s*#\d+ opened \d+ [a-zA-Z]+ ago by ([^\s]+)/;
         var re_pullreqs3 = /^\s*#\d+ by ([^\s]+) was /;
+        // example:     #2milang35 commits  4,167 ++  3,382 --
+        var re_activityOverview = /^\s*#\d+([^\s\d][^\s]*[^\s\d])\d+ commits\s+[\d.,]+\s+[\+\-]+\s+[\d.,]+\s+[\+\-]+/;
         var re_memberlist = /^\s*@([^\s]+) [^\/]+\/\s*([^\s]+)\s*$/;  
         var re_gitremote = /^\s*([^\s]+)\s+([^\s]+\.git)\s*\s+\(fetch\)\s*$/;
+        var re_StargazersDotCom = /^([^\s\/@:]+)\/([^\s\/@:]+)\s+\d+\s+\d+\s+\d+\s+\d+ \S+ ago\s*$/;
 
         var lines = data.replace('\r', '\n').split('\n');
         // Collect the lines matching either of our regexes:
@@ -60,8 +72,17 @@ try {
             var m1a = re_pullreqs2.exec(l);
             var m1b = re_pullreqs1.exec(l);
             var m1c = re_pullreqs3.exec(l);
+            var m1d = re_activityOverview.exec(l);
             var m2 = re_memberlist.exec(l);
-            if (!!m1 + !!m2 + !!m1a + !!m1b + !!m1c >= 2) {
+            var m3 = re_StargazersDotCom.exec(l);
+
+            if (DEBUG) {
+                console.log(`DEBUG LINE: ${l.replace('\r', '')} 
+            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}
+`);
+            }
+
+            if (!!m1 + !!m2 + !!m3 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
                 console.error('### unexpected double/triple match for line: ', l);
                 abortus_provocatus();
             }
@@ -80,6 +101,14 @@ try {
             if (m1c) {
                 m1c[2] = default_repo_name;
                 return m1c;
+            }
+            if (m1d) {
+                m1d[2] = default_repo_name;
+                return m1d;
+            }
+            if (m3) {
+                m3[2] = 'git://github.com/' + m3[2];
+                return m3;
             }
             if (!m2) {
                 m2 = re_gitremote.exec(l);
