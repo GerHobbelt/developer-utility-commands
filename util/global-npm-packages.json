@@ -1,6 +1,6 @@
 {
   "name": "global-utilities",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "npm-global installed packages we need for our projects",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,25 +11,17 @@
   "author": "Ger Hobbelt",
   "license": "MIT",
   "devDependencies": {
-    "bower": "1.8.2",
-    "bower-installer": "1.3.6",
-    "coffee-script": "1.12.7",
     "cssbeautify-cli": "0.5.3",
     "csslint": "1.0.5",
-    "eslint": "4.11.0",
+    "eslint": "4.19.1",
     "grunt-cli": "1.2.0",
-    "gulp-cli": "1.4.0",
-    "js-beautify": "1.7.4",
-    "jscs": "3.0.7",
-    "jshint": "2.9.5",
-    "jslint": "0.11.0",
+    "gulp-cli": "2.0.1",
+    "js-beautify": "1.7.5",
     "json": "9.0.6",
-    "less": "2.7.3",
     "less-cli": "1.0.0",
     "mocha-cli": "1.0.1",
     "@gerhobbelt/npm-check-updates": "2.13.1-1",
-    "prettyjson": "1.2.1",
-    "requirejs": "2.3.5",
-    "uglify-js": "3.1.10"
+    "prettier": "1.12.1",
+    "prettyjson": "1.2.1"
   }
 }

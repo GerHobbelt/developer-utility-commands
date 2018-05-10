@@ -5,7 +5,9 @@
 
 pushd $(dirname $0)                                                                                     2> /dev/null  > /dev/null
 
+rm -rf node_modules
 rm -f package.json
+rm -f package-lock.json
 cp global-npm-packages.json package.json
 if test -f package.json ; then
     cat package.json
