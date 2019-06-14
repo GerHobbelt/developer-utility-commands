@@ -17,7 +17,7 @@ cp global-npm-packages.json package.json
 if test -f package.json ; then
     #cat package.json
     ncu -a --packageFile package.json
-    npm update -g
+    # npm update -g
     cat package.json > global-npm-packages.json
 fi
 rm -f package.json
