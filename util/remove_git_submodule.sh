@@ -3,8 +3,8 @@
 # Work repo: https://gist.github.com/GerHobbelt/5f084b559d3197c04e90dfd018a00ee6
 #
 # Sources:
+# https://stackoverflow.com/a/16162000/1635910
 # https://gist.github.com/myusuf3/7f645819ded92bda6677
-# https://www.freecodecamp.org/forum/t/how-to-remove-a-submodule-in-git/13228
 # https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule/1260982#1260982
 # 
 if [ $# -ne 1 ]; then
@@ -62,9 +62,20 @@ echo "### Remove submodule '$MODULE_NAME':"
 # show the commands we're executing so we can diagnose which one spit out what error messages:
 set -x
 
-git config -f .gitmodules --remove-section submodule.$MODULE_NAME
-git add .gitmodules
-git config -f $DOTGIT_PATH/config --remove-section submodule.$MODULE_NAME
+git submodule deinit -f $MODULE_NAME
 git rm $MODULE_NAME
+git add .gitmodules
+set +x
+cat <<EOT
+
+Note:
+The next couple of git commands MAY complain. That's fine.
+They're here to make absolutely sure any lingering cruft
+in the git parent repo has been removed.
+
+EOT
+set -x
+git config -f .gitmodules --remove-section submodule.$MODULE_NAME
+git config -f $DOTGIT_PATH/config --remove-section submodule.$MODULE_NAME
 rm -rf $DOTGIT_PATH/modules/$MODULE_NAME
 rm -rf $MODULE_NAME
