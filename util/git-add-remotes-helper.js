@@ -122,9 +122,10 @@ try {
                 return m3;
             }
             if (m4) {
+                let repo_name_suffix = (default_repo_name !== m4[4] ? `:${m4[4]}` : '');
                 return [
                     m4[0].trim(),
-                    sanitize_name(`${m4[2]}:${m4[3]}`),
+                    sanitize_name(`${m4[2]}:${m4[3]}${repo_name_suffix}`),
                     `${m4[1]}://${m4[2]}/${m4[3]}/${m4[4]}`
                 ];
             }
