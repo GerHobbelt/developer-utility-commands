@@ -8,12 +8,20 @@ function abortus_provocatus() {
     throw ex;
 }
 
+function sanitize_name(name) {
+    return name
+    .replace(/\.org|\.com|\.net/g, '_')
+    .replace(/[^a-z0-9_-]/g, '_')
+    .replace(/[-_]+/g, '_');
+}
+
 try {
     var args = process.argv;
     //console.log(args);
     if (args.length < 4) {
-        console.log('### Required arguments: <repo-name> <metafile-or-screengrab-file>');
-        throw true;
+        const msg = '### Required arguments: <repo-name> <metafile-or-screengrab-file>';
+        console.log(msg);
+        abortus_provocatus();
     }
 
     var default_repo_name = args[2];
@@ -64,6 +72,8 @@ try {
         var re_memberlist = /^\s*@([^\s]+) [^\/]+\/\s*([^\s]+)\s*$/;  
         var re_gitremote = /^\s*([^\s]+)\s+([^\s]+\.git)\s*\s+\(fetch\)\s*$/;
         var re_StargazersDotCom = /^([^\s\/@:]+)\/([^\s\/@:]+)\s+\d+\s+\d+\s+\d+\s+\d+ \S+ ago\s*$/;
+        // https://site/user.../repo/
+        var re_arbitrary_url = /^\s*(https?|git):\/\/([^\s\/]+)\/([^\s]+)\/([^\s\/]+)\/?\s*$/;
 
         var lines = data.replace('\r', '\n').split('\n');
         // Collect the lines matching either of our regexes:
@@ -75,14 +85,15 @@ try {
             var m1d = re_activityOverview.exec(l);
             var m2 = re_memberlist.exec(l);
             var m3 = re_StargazersDotCom.exec(l);
+            var m4 = re_arbitrary_url.exec(l);
 
             if (DEBUG) {
                 console.log(`DEBUG LINE: ${l.replace('\r', '')} 
-            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}
+            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}, m4: ${m4}
 `);
             }
 
-            if (!!m1 + !!m2 + !!m3 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
+            if (!!m1 + !!m2 + !!m3 + !!m4 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
                 console.error('### unexpected double/triple match for line: ', l);
                 abortus_provocatus();
             }
@@ -109,6 +120,13 @@ try {
             if (m3) {
                 m3[2] = 'git://github.com/' + m3[2];
                 return m3;
+            }
+            if (m4) {
+                return [
+                    m4[0].trim(),
+                    sanitize_name(`${m4[2]}:${m4[3]}`),
+                    `${m4[1]}://${m4[2]}/${m4[3]}/${m4[4]}`
+                ];
             }
             if (!m2) {
                 m2 = re_gitremote.exec(l);

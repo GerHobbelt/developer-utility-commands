@@ -51,6 +51,7 @@ name of their forked repository, as the default repository name will be assumed.
     #1234 opened on 12 Jan 2345 by username  bla-milestone-bla
     @username User Name / repository
 
+We also accept forks info files which simply list a series of http://, https:// or git: URIs.
 
 Options:
 
@@ -121,8 +122,13 @@ EOT
                 # http://unix.stackexchange.com/questions/41232/loop-through-tab-delineated-file-in-bash-script
                 # This code requires `npm install json -g` (jsontools: http://trentm.com/json/ )
                 node $utildir/git-add-remotes-helper.js $repo $networkmeta | json users | json -a name repo | while read author clonename ; do
-                    echo "git remote add ${author} git://github.com/$author/$clonename.git"
-                    git remote add ${author} git://github.com/$author/$clonename.git
+                    if [[ $clonename =~ ":" ]] ; then
+                        echo "git remote add ${author} $clonename"
+                        git remote add ${author} $clonename
+                    else
+                        echo "git remote add ${author} git://github.com/$author/$clonename.git"
+                        git remote add ${author} git://github.com/$author/$clonename.git
+                    fi
                 done
             else
                 echo ""
