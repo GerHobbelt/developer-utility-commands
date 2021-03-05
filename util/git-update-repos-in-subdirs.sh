@@ -16,7 +16,7 @@ cd "$wd"
 
 
 
-getopts ":ph" opt
+getopts ":pfwh" opt
 #echo opt+arg = "$opt$OPTARG"
 case "$opt$OPTARG" in
 p )
@@ -35,6 +35,38 @@ p )
   echo done.
   ;;
 
+f )
+  echo "--- git-update all repositories in the first level subdirectories ---"
+  for f in $( find . -mindepth 1 -maxdepth 1 -type d ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    if [ -e .git ]; then
+      echo "Found .git --> updating this repository..."
+
+      $rootdir/util/git_pull_push.sh -f
+    fi
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  echo done.
+  ;;
+
+w )
+  echo "--- git-update all repositories in the first level subdirectories ---"
+  for f in $( find . -mindepth 1 -maxdepth 1 -type d ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    if [ -e .git ]; then
+      echo "Found .git --> updating this repository..."
+
+      $rootdir/util/git_pull_push.sh -w
+    fi
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  echo done.
+  ;;
+
 * )
   cat <<EOT
 $0 [-p]
@@ -42,6 +74,8 @@ $0 [-p]
 update all repositories in subdirectories level 1
 
 -p       : only PULL
+-f       : PULL + PUSH (a la 'gpp -f')
+-w       : only PUSH
 
 Note
 ----

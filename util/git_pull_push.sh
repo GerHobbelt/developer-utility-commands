@@ -7,6 +7,17 @@ pushd $(dirname $0)                                                             
 # go to root of project
 cd ..
 
+# https://serverfault.com/questions/544156/git-clone-fail-instead-of-prompting-for-credentials
+export GIT_TERMINAL_PROMPT=0
+# next env var doesn't help...
+export GIT_SSH_COMMAND='ssh -oBatchMode=yes'
+# these should shut up git asking, but only partly: the X-windows-like dialog doesn't pop up no more, but ...
+export GIT_ASKPASS=echo
+export SSH_ASKPASS=echo
+# We needed to find *THIS* to shut up the bloody git-for-windows credential manager: 
+# https://stackoverflow.com/questions/37182847/how-do-i-disable-git-credential-manager-for-windows#answer-45513654
+export GCM_INTERACTIVE=never
+
 wd=$( util/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
