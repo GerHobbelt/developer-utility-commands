@@ -72,11 +72,19 @@ else
       ;;
 
     u )
-      git config --get remote.origin.url
+      U=$( git config --get remote.origin.url )
+      if test -z "$U" ; then
+        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 )
+      fi
+      echo "$U"
       ;;
 
     n )
-      git config --get remote.origin.url | sed -e 's/.*\///' -e 's/\.git//'
+      U=$( git config --get remote.origin.url )
+      if test -z "$U" ; then
+        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 )
+      fi
+      echo "$U" | sed -e 's/.*\///' -e 's/\.git//'
       ;;
 
     B )

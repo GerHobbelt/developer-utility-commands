@@ -284,6 +284,7 @@ c )
     git gc
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
+    git reflog expire --expire-unreachable=now --all
     git repack -d
     git repack -A
     #git update-ref
@@ -297,6 +298,7 @@ c )
   git gc
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
+  git reflog expire --expire-unreachable=now --all
   git repack -d
   git repack -A
   #git update-ref
@@ -322,6 +324,7 @@ C )
     git gc
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
+    git reflog expire --expire-unreachable=now --all
     git repack -d
     git repack -A
     #git update-ref
@@ -335,6 +338,7 @@ C )
   git gc
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
+  git reflog expire --expire-unreachable=now --all
   git repack -d
   git repack -A
   #git update-ref
@@ -382,8 +386,8 @@ pull & push all git repositories in the current path.
 -W       : only PUSH this git repository and the top level git submodules.
 -c       : cleanup git repositories: run this when you get
            error 'does not point to valid object'
--C       : cleanup top level git repositories: run this when you get
-           error 'does not point to valid object'
+-C       : cleanup top level git repositories + first-level submodules: 
+           run this when you get error 'does not point to valid object'
 -s       : setup/reset all upstream (remote:origin) references for each
            submodule and push the local repo. This one ensures a 'git push --all'
            will succeed for each local branch the next time you run that

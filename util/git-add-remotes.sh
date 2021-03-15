@@ -98,6 +98,7 @@ EOT
         author=$1
         # http://askubuntu.com/questions/299710/how-to-determine-if-a-string-is-a-substring-of-another-in-bash
         if test "${1/\/}" = "$1" ; then
+            echo "*** adding remote:  ${author}/${repo}  ***"
             git remote add ${author} git://github.com/$author/$repo.git
         else
             # network_meta file from github
@@ -117,7 +118,7 @@ EOT
                 rm $dst
             elif test -f "$networkmeta" ; then
                 echo ""
-                echo "*** networkmeta JSON file:   $networkmeta  ***"
+                echo "*** networkmeta JSON file:   [$repo] [$networkmeta]  ***"
                 echo ""
                 # http://unix.stackexchange.com/questions/41232/loop-through-tab-delineated-file-in-bash-script
                 # This code requires `npm install json -g` (jsontools: http://trentm.com/json/ )
