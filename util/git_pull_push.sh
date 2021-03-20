@@ -55,9 +55,13 @@ getRepoOwner() {
 collectImportantRemotes() {
 	(
 	  	git remote -v | grep -i "${grepExpr}" | cut -f 1 
-	  	# also collect all remotes already are known to have done *somehing* in the last 2 months.
+	  	# also collect all remotes already are known to have done *something* in the last 2 months.
 	  	# This will thus 'ignore' all 'inactive' remotes.
-	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 months ago" --first-parent --show-pulls  --format="%D" | gawk -F ',' '/\w/ { for (i = 1; i < NF; i++) { rec = gensub(/^(:?.*->)?\s*/, "", 1, $i); if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
+      #
+      # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
+      # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
+      # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch. 
+	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 months ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
 	) | sort | uniq > __git_lazy_remotes__
 }
 
