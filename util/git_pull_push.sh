@@ -23,7 +23,47 @@ echo "git repository base directory: $wd"
 cd "$wd"
 
 
-getopts ":RcCfFqQpPwWlsh" opt
+
+
+# How to obtain the default repository owner?
+# -------------------------------------------
+# 
+# 1. extract the name of the owner of the repository your currently standing in
+# 2. if that doesn't work, get the locally configured github user as set up in the git repository you're standing in
+# 3. if that doesn't work, get the local system globally configured github user
+# 4. okay, nothing works. So you must be GerHobbelt on a fresh machine, right?
+# 
+# Note: the RE is engineered to eat ANYTHING and only extract username from legal git r/w repository URLs (git@github.com:user/repo.git)
+# Note: this RE should work with BSD/OSX sed too:  http://stackoverflow.com/questions/12178924/os-x-sed-e-doesnt-accept-extended-regular-expressions
+getRepoOwner() {
+    repoOwner=""
+    if test -z "$1" ; then
+        repoOwner=$( git config --get remote.origin.url | sed -E -e 's/^[^:]+(:([^\/]+)\/)?.*$/\2/' )
+    fi
+    if test -z $repoOwner ; then
+        repoOwner=$( git config --get github.user )
+        if test -z $repoOwner ; then
+            repoOwner=$( git config --global --get github.user )
+            if test -z "$repoOwner"; then
+                repoOwner=GerHobbelt
+            fi
+        fi
+    fi
+    echo "$repoOwner"
+}
+
+collectImportantRemotes() {
+	(
+	  	git remote -v | grep -i "${grepExpr}" | cut -f 1 
+	  	# also collect all remotes already are known to have done *somehing* in the last 2 months.
+	  	# This will thus 'ignore' all 'inactive' remotes.
+	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 months ago" --first-parent --show-pulls  --format="%D" | gawk -F ',' '/\w/ { for (i = 1; i < NF; i++) { rec = gensub(/^(:?.*->)?\s*/, "", 1, $i); if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
+	) | sort | uniq > __git_lazy_remotes__
+}
+
+
+
+getopts ":RcCfFqQpPwWlLsh" opt
 #echo opt+arg = "$opt$OPTARG"
 case "$opt$OPTARG" in
 "?" )
@@ -267,6 +307,48 @@ l )
   git push --tags                                                         2>&1
   ;;
 
+L )
+  echo "--- pull/push the git repo (and its submodules, where necessary) ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+
+  repoOwner=$( getRepoOwner );
+  grepExpr="orig\|${repoOwner}"
+
+  echo processing MAIN REPO: $wd
+  $@
+
+  collectImportantRemotes
+  #echo "Remotes:"
+  #cat __git_lazy_remotes__
+  
+  git fetch --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
+  git pull --ff-only                        								2>&1
+  git push --all --follow-tags                  							2>&1
+  git push --all                            								2>&1
+  rm -f __git_lazy_remotes__
+
+  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    #echo $@
+    $@
+
+    collectImportantRemotes
+    #echo "Remotes @ $f:"
+    #cat __git_lazy_remotes__
+
+    git fetch --multiple $( cat __git_lazy_remotes__ ) --tags                                                2>&1
+    git pull --ff-only                                                    2>&1
+    git push --all --follow-tags                                          2>&1
+    git push --tags                                                       2>&1
+    rm -f __git_lazy_remotes__
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  ;;
+
 c )
   echo "--- clean up the git submodules remote references etc. ---"
   for (( i=OPTIND; i > 1; i-- )) do
@@ -376,6 +458,9 @@ pull & push all git repositories in the current path.
 -l       : 'lazy': let git (1.8+) take care of pushing all submodules' changes
            which are relevant: this is your One Stop Push Shop.
            (Also performs a 'pull --all' before pushing.)
+-L       : 'Extra Lazy': only pull/push the originating remotes, ignore the others.
+           Originating remotes have your name in them or 'orig' (case INsensitive).
+           NOTE: this command pulls/pushes the main repo FIRST, the submodules AFTER.
 -f       : only pull/push this git repository and the git submodules.
 -F       : only pull/push this git repository and the top level git submodules.
 -q       : pull/push all the git submodules ONLY (not the main project).
