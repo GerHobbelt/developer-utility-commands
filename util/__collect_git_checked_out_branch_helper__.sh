@@ -22,6 +22,7 @@ gcn=$( "$utildir/git_print_repo_info.sh" -p )
 
 # as this has to work on many installations, we need the path relative to a given reference directory:
 rrd=$( "$utildir/compute_relative_path.sh" "$1" "$wd" )
+#>&2 echo "RRD: $rrd :: $1 :: $wd"
 if test -z "$rrd" ; then
   rrd="."
 fi

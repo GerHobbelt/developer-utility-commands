@@ -46,10 +46,11 @@ mkCleanAbsPath() {
 # both $1 and $2 must be turned into absolute paths beginning with /
 # 
 # The rest of the code produces the relative path to $2/$target from $1/$source
-source=$( mkCleanAbsPath "$1" );
-target=$( mkCleanAbsPath "$2" );
-#echo "source = $source"
-#echo "target = $target"
+# (Note: use `sed` to patch the `SUBST Z:` we're using lately. )
+source=$( mkCleanAbsPath "$1" | sed -e 's/^\/z\//\/w\/Projects\/sites\/library.visyond.gov\/80\//' );
+target=$( mkCleanAbsPath "$2" | sed -e 's/^\/z\//\/w\/Projects\/sites\/library.visyond.gov\/80\//' );
+#>&2 echo "source = $source"
+#>&2 echo "target = $target"
 
 common_part="$source" # for now
 result="" # for now
