@@ -20,7 +20,7 @@ cd "$wd"
 if ! test -d "$wd/util" ; then
     mkdir "$wd/util"
 fi
-dstfile="$wd/tools/register_git_remotes_recursive.sh"
+dstfile="$wd/util/register_git_remotes_recursive.sh"
 
 echo "dstfile: $dstfile"
 
