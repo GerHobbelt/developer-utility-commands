@@ -1,4 +1,0 @@
-
-# ignore npm lockfile and tempfile which are related to the scripts for installing a *global* set of npm packages
-package-lock.json
-package.json
