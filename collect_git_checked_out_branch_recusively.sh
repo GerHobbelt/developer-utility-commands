@@ -20,7 +20,7 @@ cd "$wd"
 if ! test -d "$wd/util" ; then
     mkdir "$wd/util"
 fi
-dstfile="$wd/util/checkout_to_known_git_branches_recursive.sh"
+dstfile="$wd/tools/checkout_to_known_git_branches_recursive.sh"
 
 echo "dstfile: $dstfile"
 

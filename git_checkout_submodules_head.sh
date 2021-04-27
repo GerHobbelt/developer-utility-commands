@@ -190,13 +190,13 @@ checkout_branch lib/zoom                                                       f
 checkout_branch php/lib/opauth-docs                                            gh-pages                                    $@
 checkout_branch php/lib/PHPExcel                                               develop                                     $@
 checkout_branch php/lib/phpmailer                                              smtp-refactor                               $@
-checkout_branch util/docco                                                     jump_menu                                   $@
-checkout_branch util/docco/lib/highlight.js                                    for-npm-install                             $@
-checkout_branch util/javascriptlint                                            working-rev                                 $@
-checkout_branch util/jison                                                     master                                      $@
-checkout_branch util/jison/gh-pages                                            gh-pages                                    $@
-checkout_branch util/jsbeautifier                                              gh-pages                                    $@
-checkout_branch util/phpDocumentor                                             develop                                     $@
+checkout_branch tools/docco                                                     jump_menu                                   $@
+checkout_branch tools/docco/lib/highlight.js                                    for-npm-install                             $@
+checkout_branch tools/javascriptlint                                            working-rev                                 $@
+checkout_branch tools/jison                                                     master                                      $@
+checkout_branch tools/jison/gh-pages                                            gh-pages                                    $@
+checkout_branch tools/jsbeautifier                                              gh-pages                                    $@
+checkout_branch tools/phpDocumentor                                             develop                                     $@
 
 
 popd                                                                                                    2> /dev/null  > /dev/null

@@ -21,7 +21,7 @@ f )
   git submodule update --init
   git submodule update --init --recursive
 
-  util/git_checkout_submodules_head.sh
+  tools/git_checkout_submodules_head.sh
   ;;
 
 "?" )

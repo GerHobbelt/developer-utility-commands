@@ -5,7 +5,7 @@
 // 
 // Sample execution:
 // 
-//      node /z/util/patch-vcxproj-files.js $( find . -iname '*.vc*proj' )
+//      node /z/tools/patch-vcxproj-files.js $( find . -iname '*.vc*proj' )
 //      
 
 const fs = require('fs');

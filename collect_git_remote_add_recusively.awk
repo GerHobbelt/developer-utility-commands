@@ -31,7 +31,7 @@ BEGIN       {
     printf("  git submodule update --init\n");
     printf("  git submodule update --init --recursive\n");
     printf("\n");
-    printf("  util/git_checkout_submodules_head.sh\n");
+    printf("  tools/git_checkout_submodules_head.sh\n");
     printf("  ;;\n");
     printf("\n");
     printf("\"?\" )\n");

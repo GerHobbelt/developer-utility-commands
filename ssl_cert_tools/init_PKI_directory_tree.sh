@@ -35,7 +35,7 @@ utildir="$( pwd )";
 # go to root of project
 cd ../..
 
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 

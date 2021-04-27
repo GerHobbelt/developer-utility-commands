@@ -57,7 +57,7 @@ cat <<EOT
 
 Pro Tip: did you also run the
 
-    util/yii-init-cache-directories.sh
+    tools/yii-init-cache-directories.sh
 
 shell script? (Just making sure... I assume you know what you're doing
 and hence are perfectly capable to decide whether to run that one or not.)

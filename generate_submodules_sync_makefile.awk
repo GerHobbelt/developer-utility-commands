@@ -19,12 +19,12 @@ BEGIN {
     printf("# Usage:\n");
     printf("#\n");
     printf("#     cd <base directory>\n");
-    printf("#     make -f util/Makefile\n");
+    printf("#     make -f tools/Makefile\n");
     printf("#\n");
     printf("# or\n");
     printf("#\n");
     printf("#     cd <base directory>\n");
-    printf("#     make -f util/Makefile <target>\n");
+    printf("#     make -f tools/Makefile <target>\n");
     printf("#     \n");
     printf("# to git pull/push the addressed submodule repository/repositories\n");
     printf("#\n");

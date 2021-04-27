@@ -10,7 +10,7 @@ pushd $(dirname $0)                                                             
 
 # go to root of project
 cd ..
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 
@@ -36,7 +36,7 @@ f )
     git reset --hard
 
     echo "*** Then, we make sure that all submodules have been properly registered..."
-    util/git_add_submodule_references.sh
+    tools/git_add_submodule_references.sh
 
     echo "*** ... and that they have all been updated to the latest, complete, state of affairs..."
     git submodule update --init --recursive
@@ -47,9 +47,9 @@ f )
     git submodule update --init --recursive
 
     echo "*** ... Next, we 'upgrade' each submodule by checking out the main branch and PULLing the latest..."
-    util/git_checkout_submodules_head.sh
+    tools/git_checkout_submodules_head.sh
     # we also make sure there's no fuss with the pull by first RESETting each repo:
-    $(dirname $0)/util/git_pull_push.sh -p git reset --hard
+    $(dirname $0)/tools/git_pull_push.sh -p git reset --hard
 
     echo "*** ... and finally we make sure each submodule is moved to the commit which is linked with the current commit in the main project."
     git submodule update --recursive
@@ -81,7 +81,7 @@ x )
     git reset --hard
 
     echo "*** Then, we make sure that all submodules have been properly registered..."
-    util/git_add_submodule_references.sh
+    tools/git_add_submodule_references.sh
 
     echo "*** ... and they have all been updated to the latest, complete, state of affairs..."
     git submodule update --init --recursive
@@ -92,11 +92,11 @@ x )
     git submodule update --init --recursive
 
     echo "*** ... Next, we 'upgrade' each submodule by checking out the main branch and PULLing the latest..."
-    util/git_checkout_submodules_head.sh
+    tools/git_checkout_submodules_head.sh
     # spring cleaning, round #2
-    $(dirname $0)/util/git_pull_push.sh -c
+    $(dirname $0)/tools/git_pull_push.sh -c
     # we also make sure there's no fuss with the pull by first RESETting each repo:
-    $(dirname $0)/util/git_pull_push.sh -p git reset --hard
+    $(dirname $0)/tools/git_pull_push.sh -p git reset --hard
 
     echo "*** ... and finally we make sure each submodule is moved to the commit which is linked with the current commit in the main project."
     git submodule update --recursive
@@ -117,7 +117,7 @@ l )
 
 s )
     echo "*** VM Server/Host: set all git repo's up with config 'receive.denyCurrentBranch = warn'"
-    util/VM_Win7_host_allows_git_push_from_VM_client.sh
+    tools/VM_Win7_host_allows_git_push_from_VM_client.sh
     ;;
 
 * )

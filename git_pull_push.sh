@@ -18,7 +18,7 @@ export SSH_ASKPASS=echo
 # https://stackoverflow.com/questions/37182847/how-do-i-disable-git-credential-manager-for-windows#answer-45513654
 export GCM_INTERACTIVE=never
 
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 
@@ -480,7 +480,7 @@ pull & push all git repositories in the current path.
 -s       : setup/reset all upstream (remote:origin) references for each
            submodule and push the local repo. This one ensures a 'git push --all'
            will succeed for each local branch the next time you run that
-           command directly or indirectly via, e.g. 'util/git_pull_push.sh -f'
+           command directly or indirectly via, e.g. 'tools/git_pull_push.sh -f'
 -R       : HARD RESET this git repository and the git submodules. This is useful
            to sync the working directories after you ran the VM_push/pull script
            in your VM.

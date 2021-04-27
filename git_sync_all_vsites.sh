@@ -98,7 +98,7 @@ EOF
         fi        
 
         if test "$sync_all_depths" == "1" ; then
-          util/git_pull_push.sh -f
+          tools/git_pull_push.sh -f
         else        
           git fetch --tags                                                      2>&1
           git pull --all                                                        2>&1

@@ -14,16 +14,16 @@ pushd $(dirname $0)                                                             
 # go to root of project
 cd ..
 
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 
 if test -d "$wd/util" ; then
-    dstfile="$wd/util/git_add_submodule_references.sh"
+    dstfile="$wd/tools/git_add_submodule_references.sh"
 else
-    dstfile=util/git_add_submodule_references.sh
+    dstfile=tools/git_add_submodule_references.sh
 fi
 echo "dstfile: $dstfile"
 
-cat "$wd/.gitmodules" | gawk -f util/generate_submodules_add_script.awk > "$dstfile"
+cat "$wd/.gitmodules" | gawk -f tools/generate_submodules_add_script.awk > "$dstfile"
 
 popd                                                                                                    2> /dev/null  > /dev/null

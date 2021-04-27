@@ -43,7 +43,7 @@ cd ..
 #repo_name=$( basename $(git remote show -n origin | grep Fetch | cut -d: -f2-) )
 repo_name=environment_root
 
-root_dir=$( util/print-git-repo-base-directory.sh "$wd" )
+root_dir=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $root_dir"
 
 cd "$root_dir"

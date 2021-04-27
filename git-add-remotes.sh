@@ -60,8 +60,8 @@ Options:
 
 Example usage:
 
-     util/git_add_remotes.sh tigbro
-     util/git_add_remotes.sh tigbro @./network_meta
+     tools/git_add_remotes.sh tigbro
+     tools/git_add_remotes.sh tigbro @./network_meta
 
   which will register git@github.com:tigbro/<current-repo-name>.git and any forks listed in 
   the github metadata file found in ./network_meta

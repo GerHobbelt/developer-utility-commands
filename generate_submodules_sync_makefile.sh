@@ -12,17 +12,17 @@ pushd $(dirname $0)                                                             
 # go to root of project
 cd ..
 
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 
 if test -d "$wd/util" ; then
-    dstfile="$wd/util/Makefile"
+    dstfile="$wd/tools/Makefile"
 else
-    dstfile=util/Makefile
+    dstfile=tools/Makefile
 fi
 echo "dstfile: $dstfile"
 
-cat "$wd/.gitmodules" | gawk -f util/generate_submodules_sync_makefile.awk > "$dstfile"
+cat "$wd/.gitmodules" | gawk -f tools/generate_submodules_sync_makefile.awk > "$dstfile"
 pwd > /tmp/sync_submods.list
 git submodule foreach --recursive pwd >> /tmp/sync_submods.list
 

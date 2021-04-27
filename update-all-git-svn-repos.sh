@@ -82,9 +82,9 @@ esac
 pushd $(dirname $0)                                                                                     2> /dev/null  > /dev/null
 
 
-echo --- copying SVN update driver script to /tmp/svn-sync/util/ ...
+echo --- copying SVN update driver script to /tmp/svn-sync/tools/ ...
 mkdir -p /tmp/svn-sync/util                                                                             2> /dev/null  > /dev/null
-cp update-all-git-svn-repos.sh /tmp/svn-sync/util/
+cp update-all-git-svn-repos.sh /tmp/svn-sync/tools/
 
 cd ..
 

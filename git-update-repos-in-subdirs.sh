@@ -28,7 +28,7 @@ p )
     if [ -e .git ]; then
       echo "Found .git --> updating this repository..."
 
-      $rootdir/util/git_pull_push.sh -p
+      $rootdir/tools/git_pull_push.sh -p
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -44,7 +44,7 @@ f )
     if [ -e .git ]; then
       echo "Found .git --> updating this repository..."
 
-      $rootdir/util/git_pull_push.sh -f
+      $rootdir/tools/git_pull_push.sh -f
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -60,7 +60,7 @@ w )
     if [ -e .git ]; then
       echo "Found .git --> updating this repository..."
 
-      $rootdir/util/git_pull_push.sh -w
+      $rootdir/tools/git_pull_push.sh -w
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done

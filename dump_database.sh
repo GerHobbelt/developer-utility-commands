@@ -258,7 +258,7 @@ EOT
   #
 
   # patch the dump so our critical settings are always in there:
-  cat tmp.bak tmp2.bak | gawk -f util/dump_database.awk > "$dumpfile"
+  cat tmp.bak tmp2.bak | gawk -f tools/dump_database.awk > "$dumpfile"
 
   rm -f tmp.bak tmp2.bak
 

@@ -37,7 +37,7 @@ pushd $(dirname $0)                                                             
 # go to root of project
 cd ..
 
-wd=$( util/print-git-repo-base-directory.sh "$wd" )
+wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 #echo "git repository base directory: $wd"
 
 cd "$wd"
@@ -168,7 +168,7 @@ Command Options:
 
 -m      : Print YOUR github username.
           This is what you'll get when using this '-m' parameter with the 
-          'util/git-add-new-submodule.sh' utility script.
+          'tools/git-add-new-submodule.sh' utility script.
 
 -b      : Print the currently checked out BRANCH name (symbolic) or commit hash.
           A 'commit hash' is printed if you are checked out to a specific commit 

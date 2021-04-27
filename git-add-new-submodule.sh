@@ -90,8 +90,8 @@ Note:
 
 Example usage:
 
-     util/git_add_submodule.sh jasmine-ui lib/jasmine-ui tigbro
-     util/git_add_submodule.sh jasmine-ui lib/jasmine-ui tigbro @./network_meta
+     tools/git_add_submodule.sh jasmine-ui lib/jasmine-ui tigbro
+     tools/git_add_submodule.sh jasmine-ui lib/jasmine-ui tigbro @./network_meta
 
   which will register the git@github.com:$repoOwner/jasmine-ui.git remote repository as a git
   submodule in the local directory lib/jasmine-ui, while git@github.com:tigbro/jasmine-ui.git

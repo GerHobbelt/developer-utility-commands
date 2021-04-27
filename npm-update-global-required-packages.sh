@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Install the packages listed in util/packages.json as *global* packages.
+# Install the packages listed in tools/packages.json as *global* packages.
 # 
 
 pushd $(dirname $0)                                                                                     2> /dev/null  > /dev/null
