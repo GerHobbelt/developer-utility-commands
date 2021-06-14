@@ -46,6 +46,9 @@ if git submodule status "$submodule_name" >/dev/null 2>&1; then
   else
     git add .gitmodules
   fi
+
+  # post-partum fixups for buggy situations we've found ourselves in
+  git rm -r --cached "$submodule_name"
 else
   exit_err "Submodule '$submodule_name' not found"
 fi
