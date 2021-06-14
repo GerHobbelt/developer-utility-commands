@@ -61,13 +61,13 @@ collectImportantRemotes() {
       # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
       # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
       # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch. 
-	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 months ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
+	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
 	) | sort | uniq > __git_lazy_remotes__
 }
 
 
 
-getopts ":RcCfFqQpPwWlLsh" opt
+getopts ":RcCfFqQpPwWlLsZxh" opt
 #echo opt+arg = "$opt$OPTARG"
 case "$opt$OPTARG" in
 "?" )
@@ -86,6 +86,25 @@ case "$opt$OPTARG" in
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  ;;
+
+x )
+  echo "--- execute the command in git repo and its submodules ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+  echo command: $@
+  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo processing PATH/SUBMODULE: $f
+    cd $f
+    echo $@
+    $@
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  echo processing MAIN REPO: $wd
+  echo $@
+  $@
   ;;
 
 f )
@@ -433,6 +452,26 @@ C )
   git remote prune origin
   ;;
 
+Z )
+  echo "--- clean up the immediate git repository's remote references etc. ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+  #echo args: $@
+  echo processing MAIN REPO: $wd
+  $@
+  git gc
+  git fsck --full --unreachable --strict
+  git reflog expire --expire=0 --all
+  git reflog expire --expire-unreachable=now --all
+  git repack -d
+  git repack -A
+  #git update-ref
+  git gc --aggressive --prune=all
+  git remote update --prune
+  git remote prune origin
+  ;;
+
 s )
   echo "--- for all submodules + base repo: set upstream ref for each local branch and push the repo ---"
   for (( i=OPTIND; i > 1; i-- )) do
@@ -477,6 +516,8 @@ pull & push all git repositories in the current path.
            error 'does not point to valid object'
 -C       : cleanup top level git repositories + first-level submodules: 
            run this when you get error 'does not point to valid object'
+-Z       : cleanup top level git repository only: 
+           run this when you get error 'does not point to valid object'
 -s       : setup/reset all upstream (remote:origin) references for each
            submodule and push the local repo. This one ensures a 'git push --all'
            will succeed for each local branch the next time you run that
@@ -484,6 +525,7 @@ pull & push all git repositories in the current path.
 -R       : HARD RESET this git repository and the git submodules. This is useful
            to sync the working directories after you ran the VM_push/pull script
            in your VM.
+-x       : execute the given command in the repository and each git submodule.
 
 <no opt> : pull/push ANY git repository find in the current directory tree.
 
@@ -493,6 +535,16 @@ and executed for each directory containing a git repository. E.g.:
   $0 git commit -a
 
 will execute a 'git commit -a' for every git repository.
+
+WARNING / NOTE: 
+Quoted extra command arguments don't get processed properly yet (we use bash's \$\@)
+so you're best served by coding your command(s) in a temporary bash shell script,
+then pass the ABSOLUTE PATH to that shell script as the command to execute. E.g.:
+
+  $0 /z/lib/tooling/qiqqa/tmp.sh 
+
+(The absolute path makes sure that shell script is found and executable from every
+git submodule directory visited by the git_pull_push command/script.)
 
 EOT
   ;;
