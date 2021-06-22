@@ -236,8 +236,11 @@ function format_author(auth, mail) {
 	//console.error('author mangled:', {auth, mail});		
 	if (mail.length === 0)
 		return auth;
-	else
-		return \`\${ auth } <\${ mail }>\`;
+	else {
+		// do not include email in output at all!
+		//return \`\${ auth } <\${ mail }>\`;
+		return auth;
+	}
 } 
 
 function format_years(year_start, year_end) {
@@ -313,3 +316,7 @@ else
 	rm -f CONTRIBUTORS.md
 fi
 node $TMPDATA.js $TMPDATA.b >> CONTRIBUTORS.md
+
+
+# remove scratch files when done
+rm $TMPDATA*
