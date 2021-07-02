@@ -16,7 +16,8 @@ echo "Please update NPM itself manually if you want to!"
 cp global-npm-packages.json package.json
 if test -f package.json ; then
     #cat package.json
-    ncu -a --packageFile package.json
+    npm install
+    ncu -u --packageFile package.json
     # npm update -g
     cat package.json > global-npm-packages.json
 fi

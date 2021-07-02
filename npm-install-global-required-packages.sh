@@ -16,6 +16,8 @@ if test -f package.json ; then
     # and we want to have a way to run the usual update scripts for these!
     echo "Installing a local copy of the global packages..."
     npm install
+    npm prune
+    npm audit fix
 
     echo "Installing the global packages for real..."
     npm install -g json
