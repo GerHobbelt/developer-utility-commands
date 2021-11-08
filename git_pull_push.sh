@@ -386,13 +386,17 @@ c )
     $@
     # http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
     # http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
+    # https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
     git gc
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
     git reflog expire --expire-unreachable=now --all
+    git gc --prune=now
+    git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
     git repack -d
     git repack -A
     #git update-ref
+    git reflog expire --expire=now --expire-unreachable=now --all
     git gc --aggressive --prune=all
     git remote update --prune
     git remote prune origin
@@ -404,9 +408,12 @@ c )
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
   git reflog expire --expire-unreachable=now --all
+  git gc --prune=now
+  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
   git repack -d
   git repack -A
   #git update-ref
+  git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
   git remote update --prune
   git remote prune origin
@@ -430,9 +437,12 @@ C )
     git fsck --full --unreachable --strict
     git reflog expire --expire=0 --all
     git reflog expire --expire-unreachable=now --all
+    git gc --prune=now
+    git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
     git repack -d
     git repack -A
     #git update-ref
+    git reflog expire --expire=now --expire-unreachable=now --all
     git gc --aggressive --prune=all
     git remote update --prune
     git remote prune origin
@@ -444,9 +454,12 @@ C )
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
   git reflog expire --expire-unreachable=now --all
+  git gc --prune=now
+  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
   git repack -d
   git repack -A
   #git update-ref
+  git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
   git remote update --prune
   git remote prune origin
@@ -464,9 +477,12 @@ Z )
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
   git reflog expire --expire-unreachable=now --all
+  git gc --prune=now
+  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
   git repack -d
   git repack -A
   #git update-ref
+  git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
   git remote update --prune
   git remote prune origin
