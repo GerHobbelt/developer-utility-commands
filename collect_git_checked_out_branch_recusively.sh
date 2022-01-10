@@ -43,7 +43,7 @@ cat > "$dstfile" <<EOT
 #
 
 mode=h;
-while getopts ":hlc" opt ; do
+while getopts ":hlrc" opt ; do
   #echo opt+arg = "\$opt\$OPTARG"
   case "\$opt\$OPTARG" in
   l )
@@ -103,6 +103,9 @@ git_repo_checkout_branch() {
           git checkout "\$3"
         else
           git checkout master
+          if test \$? -ne 0 ; then
+            git checkout main
+          fi
         fi
       else
         git checkout "\$2"

@@ -94,7 +94,7 @@ BEGIN       {
     printf("    fi\n");
     printf("\n");
     printf("    if test $hit -ne 0 ; then\n");
-    printf("        if test -d $path && test -s $path/.git ; then\n");
+    printf("        if test -d $path && test -e $path/.git ; then\n");
     printf("            if test $submodule != $path ; then\n");
     printf("                echo -------------------------------------------------------------------------------------\n");
     printf("                echo submodule:: $path\n");

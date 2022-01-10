@@ -29,7 +29,7 @@ fi
 #echo "git repo directory: $rrd"
 
 # warning: $gbn MAY be empty! Thus we produce an OPTIONAL third argument here:
-echo "git_repo_checkout_branch \"$rrd\" $gcn $gbn"
+printf "git_repo_checkout_branch %-40s %s %-10s\n" "\"$rrd\"" $gcn $gbn
 
 # http://stackoverflow.com/questions/2990414/echo-that-outputs-to-stderr
 >&2 echo "REPOSITORY: $rrd  :: $gcn :: $gbn"
