@@ -56,7 +56,7 @@ to see the online help for this utility script.
 EOT
   rv=2;
 else
-  while getopts ":hdnuombBcCp" opt ; do
+  while getopts ":hdnuombBcCpP" opt ; do
     #echo opt+arg = "$opt$OPTARG"
     case "$opt$OPTARG" in
     d )
@@ -64,27 +64,56 @@ else
       ;;
 
     o )
-      echo $( getRepoOwner );
+      O=$( getRepoOwner );
+      if test -z "$O" ; then
+        rv=4;
+      else
+        echo "$O";
+      fi;
       ;;
 
     m )
-      echo $( getRepoOwner "whoami" );
+      O=$( getRepoOwner "whoami" );
+      if test -z "$O" ; then
+        rv=4;
+      else
+        echo "$O";
+      fi;
       ;;
 
     u )
-      U=$( git config --get remote.origin.url )
+      U=
+      #$( git config --get remote.origin.url )
       if test -z "$U" ; then
-        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 )
+        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 | sed -e 's/remote\..*\.url=//' )
       fi
-      echo "$U"
+      if test -z "$U" ; then
+        U=$( git config -l | grep -h -e 'remote\..*\.url=git:\/\/.*' | head -n 1 | sed -e 's/remote\..*\.url=//' )
+      fi
+      if test -z "$U" ; then
+        rv=4;
+      else
+        echo "$U";
+      fi;
       ;;
 
     n )
       U=$( git config --get remote.origin.url )
       if test -z "$U" ; then
-        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 )
+        U=$( git config -l | grep -h -e 'remote\..*\.url=.*\w\.git' | head -n 1 | sed -e 's/remote\..*\.url=//' )
       fi
-      echo "$U" | sed -e 's/.*\///' -e 's/\.git//'
+      if test -z "$U" ; then
+        U=$( git config -l | grep -h -e 'remote\..*\.url=git:\/\/.*' | head -n 1 | sed -e 's/remote\..*\.url=//' )
+      fi
+      N=$( echo "$U" | sed -e 's/.*\///' -e 's/\.git//' )
+      if test -z "$N" ; then
+        N=$( echo "$U" | sed -e 's/\/$//' -e 's/.*\///' )
+      fi
+      if test -z "$N" ; then
+        rv=4;
+      else
+        echo "$N";
+      fi;
       ;;
 
     B )
