@@ -110,6 +110,13 @@ giturl=$1
 dstdir=$2
 author=$3
 
+if test "${dstdir}" = "=" ; then
+    dstdir=${repo}
+fi
+if test "${author}" = "=" ; then
+    author=${repo}
+fi
+
 # check if the specified repository is a git URL or simply a repo name: in the latter case the URL is constructed for you.
 #
 # http://askubuntu.com/questions/299710/how-to-determine-if-a-string-is-a-substring-of-another-in-bash
@@ -123,15 +130,17 @@ fi
     cat <<EOT
 -------------------------------------------------------------------------------------------
 Registering as a git submodule:
-  $repo
+  ${repo}
 
 We assume this (git/github) URL points at the remote repository which will (a) be cloned,
 and (b) be referenced as the default 'git push' remote, so you'ld better have collaborator
 or owner rights there, buddy! ('git push' directly or via the 'git_pull_push.sh' script...)
   
-  url =         $giturl
-  owner =       $githubowner
-  destination = $dstdir 
+  repo = .......... ${repo}
+  url = ........... ${giturl}
+  owner = ......... ${githubowner}
+  original author = ${author}
+  destination = ... ${dstdir} 
 -------------------------------------------------------------------------------------------
 EOT
 
