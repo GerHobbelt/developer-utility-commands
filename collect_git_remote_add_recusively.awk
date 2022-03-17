@@ -4,6 +4,20 @@
 # run.
 #
 
+# case_fold_compare --- compare as strings, ignoring case
+function case_fold_compare(i1, v1, i2, v2,    l, r)
+{
+    l = tolower(v1)
+    r = tolower(v2)
+
+    if (l < r)
+        return -1
+    else if (l == r)
+        return 0
+    else
+        return 1
+}
+
 BEGIN       {
     submodule_path = ".";
     idx = 0;
@@ -50,7 +64,7 @@ BEGIN       {
 }
 
 END         {
-    asort(stmts);
+    asort(stmts, stmts, "case_fold_compare");
     for (i = 1; i <= idx; i++)
     {
         printf("%s\n", stmts[i]);
