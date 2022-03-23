@@ -110,7 +110,7 @@ EOT
         # http://askubuntu.com/questions/299710/how-to-determine-if-a-string-is-a-substring-of-another-in-bash
         if test "${1/\/}" = "$1" ; then
             echo "*** adding remote:  ${author}/${repo}  ***"
-            git remote add ${author} git://github.com/$author/$repo.git
+            git remote add ${author} git@github.com:$author/$repo.git
         else
             # network_meta file from github
             networkmeta=$( realpath "$1" )
@@ -138,8 +138,8 @@ EOT
                         echo "git remote add ${author} $clonename"
                         git remote add ${author} $clonename
                     else
-                        echo "git remote add ${author} git://github.com/$author/$clonename.git"
-                        git remote add ${author} git://github.com/$author/$clonename.git
+                        echo "git remote add ${author} git@github.com:$author/$clonename.git"
+                        git remote add ${author} git@github.com:$author/$clonename.git
                     fi
                 done
             else

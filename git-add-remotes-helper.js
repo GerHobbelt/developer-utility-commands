@@ -118,7 +118,7 @@ try {
                 return m1d;
             }
             if (m3) {
-                m3[2] = 'git://github.com/' + m3[2];
+                m3[2] = 'git@github.com:' + m3[2];
                 return m3;
             }
             if (m4) {
@@ -143,7 +143,7 @@ try {
         var users = m.map(function (d) {
             return {
                 name: d[1],
-                repo: d[2].replace(/^git@github.com:/, "git://github.com/")
+                repo: d[2].replace(/^git:\/\/github\.com/, "git@github.com:")
             };
         }).filter(function (u) {
             var hash = u.name + '#' + u.repo;
