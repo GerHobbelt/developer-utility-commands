@@ -74,6 +74,7 @@ try {
         var re_StargazersDotCom = /^([^\s\/@:]+)\/([^\s\/@:]+)\s+\d+\s+\d+\s+\d+\s+\d+ \S+ ago\s*$/;
         // https://site/user.../repo/
         var re_arbitrary_url = /^\s*(https?|git):\/\/([^\s\/]+)\/([^\s]+)\/([^\s\/]+)\/?\s*$/;
+        var re_new_github_url = /^\s*git@github\.com:([^\s]+)\/([^\s\/]+)\/?\s*$/;
 
         var lines = data.replace('\r', '\n').split('\n');
         // Collect the lines matching either of our regexes:
@@ -86,14 +87,15 @@ try {
             var m2 = re_memberlist.exec(l);
             var m3 = re_StargazersDotCom.exec(l);
             var m4 = re_arbitrary_url.exec(l);
+            var m5 = re_new_github_url.exec(l);
 
             if (DEBUG) {
                 console.log(`DEBUG LINE: ${l.replace('\r', '')} 
-            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}, m4: ${m4}
+            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}, m4: ${m4}, m5: ${m5}
 `);
             }
 
-            if (!!m1 + !!m2 + !!m3 + !!m4 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
+            if (!!m1 + !!m2 + !!m3 + !!m4 + !!m5 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
                 console.error('### unexpected double/triple match for line: ', l);
                 abortus_provocatus();
             }
@@ -127,6 +129,14 @@ try {
                     m4[0].trim(),
                     sanitize_name(`${m4[2]}:${m4[3]}${repo_name_suffix}`),
                     `${m4[1]}://${m4[2]}/${m4[3]}/${m4[4]}`
+                ];
+            }
+            if (m5) {
+                let repo_name_suffix = (default_repo_name !== m5[2] ? `:${m5[2]}` : '');
+                return [
+                    m5[0].trim(),
+                    sanitize_name(`${m5[1]}:${m5[2]}`),
+                    m5[0].trim()
                 ];
             }
             if (!m2) {
