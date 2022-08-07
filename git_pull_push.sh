@@ -18,6 +18,9 @@ export SSH_ASKPASS=echo
 # https://stackoverflow.com/questions/37182847/how-do-i-disable-git-credential-manager-for-windows#answer-45513654
 export GCM_INTERACTIVE=never
 
+#GIT_PARALLEL_JOBS_CMDARG=-j7
+GIT_PARALLEL_JOBS_CMDARG=-j4
+
 wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
@@ -57,17 +60,17 @@ collectImportantRemotes() {
 	  	git remote -v | grep -i "${grepExpr}" | cut -f 1 
 	  	# also collect all remotes already are known to have done *something* in the last 2 months.
 	  	# This will thus 'ignore' all 'inactive' remotes.
-      #
-      # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
-      # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
-      # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch. 
+	        #
+	        # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
+	        # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
+	        # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch. 
 	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
 	) | sort | uniq > __git_lazy_remotes__
 }
 
 
 
-getopts ":RcCfFqQpPwWlLsZxh" opt
+getopts ":RcCfFqQpPwWlLgGsZxh" opt
 #echo opt+arg = "$opt$OPTARG"
 case "$opt$OPTARG" in
 "?" )
@@ -76,14 +79,20 @@ case "$opt$OPTARG" in
   for f in $( find . -name '.git' ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     f=$( dirname "$f" )
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
+    TRACKING_URL=$( git config --get remote.origin.url )
+    # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+    if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      git push --all --follow-tags                                          2>&1
+      git push --tags                                                       2>&1
+    else
+      echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+    fi
     popd                                                                  2> /dev/null  > /dev/null
   done
   ;;
@@ -96,13 +105,13 @@ x )
   echo command: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     echo $@
     $@
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   echo $@
   $@
   ;;
@@ -115,22 +124,34 @@ f )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+    TRACKING_URL=$( git config --get remote.origin.url )
+    # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+    if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      git push --all --follow-tags                                          2>&1
+      git push --tags                                                       2>&1
+    else
+      echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+    fi
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
-  git fetch --all --tags                                                  2>&1
-  git pull --ff-only                                                      2>&1
-  git push --all --follow-tags                                            2>&1
-  git push --tags                                                         2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+  TRACKING_URL=$( git config --get remote.origin.url )
+  # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+  if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+    git push --all --follow-tags                                            2>&1
+    git push --tags                                                         2>&1
+  else
+    echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+  fi
   ;;
 
 F )
@@ -141,22 +162,34 @@ F )
   #echo args: $@
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+    TRACKING_URL=$( git config --get remote.origin.url )
+    # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+    if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      git push --all --follow-tags                                          2>&1
+      git push --tags                                                       2>&1
+    else
+      echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+    fi
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
-  git fetch --all --tags                                                  2>&1
-  git pull --ff-only                                                      2>&1
-  git push --all --follow-tags                                            2>&1
-  git push --tags                                                         2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+  TRACKING_URL=$( git config --get remote.origin.url )
+  # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+  if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+    git push --all --follow-tags                                            2>&1
+    git push --tags                                                         2>&1
+  else
+    echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+  fi
   ;;
 
 q )
@@ -167,12 +200,12 @@ q )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
@@ -187,12 +220,12 @@ Q )
   #echo args: $@
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
@@ -207,18 +240,18 @@ p )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
-  git fetch --all --tags                                                  2>&1
-  git pull --ff-only                                                      2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+  git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   ;;
 
 P )
@@ -229,18 +262,18 @@ P )
   #echo args: $@
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    git fetch --all --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
-  git fetch --all --tags                                                  2>&1
-  git pull --ff-only                                                      2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
   ;;
 
 w )
@@ -251,7 +284,7 @@ w )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
@@ -259,7 +292,7 @@ w )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
@@ -273,7 +306,7 @@ W )
   #echo args: $@
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
@@ -281,7 +314,7 @@ W )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
@@ -298,14 +331,14 @@ R )
   git reset --hard                                                        2>&1
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo RESET-ting PATH/SUBMODULE: $f
+    echo "### RESET-ting PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
     git reset --hard                                                      2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo RESET-ing MAIN REPO: $wd
+  echo "### RESET-ing MAIN REPO: $wd"
   $@
   git reset --hard                                                        2>&1
   ;;
@@ -317,15 +350,15 @@ l )
   done
   #echo $@
   $@
-  git fetch --all --tags --recurse-submodules=on-demand                   2>&1
-  git pull --ff-only --recurse-submodules=on-demand                       2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
   # report which submodules need attention (they will be done automatically, but it doesn't hurt to report them, in case things go pearshaped)
   git push --all --follow-tags --recurse-submodules=check                 2>&1
   git push --all --recurse-submodules=on-demand                           2>&1
 
   # even when the above commands b0rk, pull/push this repo anyway
-  git fetch --all --tags                                                  2>&1
-  git pull --ff-only                                                      2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
   git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
   ;;
@@ -339,22 +372,22 @@ L )
   repoOwner=$( getRepoOwner );
   grepExpr="orig\|${repoOwner}"
 
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
 
   collectImportantRemotes
   #echo "Remotes:"
   #cat __git_lazy_remotes__
   
-  git fetch --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
-  git pull --ff-only                        								2>&1
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        				2>&1
   git push --all --follow-tags                  							2>&1
   git push --all                            								2>&1
   rm -f __git_lazy_remotes__
 
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
@@ -363,10 +396,63 @@ L )
     #echo "Remotes @ $f:"
     #cat __git_lazy_remotes__
 
-    git fetch --multiple $( cat __git_lazy_remotes__ ) --tags                                                2>&1
-    git pull --ff-only                                                    2>&1
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+    git push --all --follow-tags                                          				2>&1
+    git push --tags                                                       				2>&1
+    rm -f __git_lazy_remotes__
+    popd                                                                  2> /dev/null  > /dev/null
+  done
+  ;;
+
+g )
+  echo "--- pull the git repo (and its submodules, where necessary) ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+  #echo $@
+  $@
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
+
+  # even when the above commands b0rk, pull this repo anyway
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+  ;;
+
+G )
+  echo "--- pull the git repo (and its submodules, where necessary) ---"
+  for (( i=OPTIND; i > 1; i-- )) do
+    shift
+  done
+
+  repoOwner=$( getRepoOwner );
+  grepExpr="orig\|${repoOwner}"
+
+  echo "### processing MAIN REPO: $wd"
+  $@
+
+  collectImportantRemotes
+  #echo "Remotes:"
+  #cat __git_lazy_remotes__
+  
+  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        		        	2>&1
+  rm -f __git_lazy_remotes__
+
+  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+    pushd .                                                               2> /dev/null  > /dev/null
+    echo "### processing PATH/SUBMODULE: $f"
+    cd $f
+    #echo $@
+    $@
+
+    collectImportantRemotes
+    #echo "Remotes @ $f:"
+    #cat __git_lazy_remotes__
+
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
     rm -f __git_lazy_remotes__
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -380,7 +466,7 @@ c )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
@@ -402,7 +488,7 @@ c )
     git remote prune origin
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git gc
   git fsck --full --unreachable --strict
@@ -427,7 +513,7 @@ C )
   #echo args: $@
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
@@ -448,7 +534,7 @@ C )
     git remote prune origin
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git gc
   git fsck --full --unreachable --strict
@@ -471,7 +557,7 @@ Z )
     shift
   done
   #echo args: $@
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git gc
   git fsck --full --unreachable --strict
@@ -496,21 +582,21 @@ s )
   #echo args: $@
   for f in $( git submodule foreach --recursive --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
-    echo processing PATH/SUBMODULE: $f
+    echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
     git push -u origin --all
     popd                                                                  2> /dev/null  > /dev/null
   done
-  echo processing MAIN REPO: $wd
+  echo "### processing MAIN REPO: $wd"
   $@
   git push -u origin --all
   ;;
 
 * )
   cat <<EOT
-$0 [-c] [-f] [-l] [-p] [-q] [-R] [-s] [args]
+$0 [-c] [-f] [-l] [-p] [-g] [-q] [-R] [-s] [args]
 
 pull & push all git repositories in the current path.
 
@@ -526,6 +612,11 @@ pull & push all git repositories in the current path.
 -Q       : pull/push all the top level git submodules ONLY (not the main project).
 -p       : only PULL this git repository and the git submodules.
 -P       : only PULL this git repository and the top level git submodules.
+-g       : 'lazy get': let git (1.8+) take care of pulling all submodules' changes
+           which are relevant: this is your One Stop Pull Shop.
+-G       : 'Extra Lazy Get': only pull the originating remotes, ignore the others.
+           Originating remotes have your name in them or 'orig' (case INsensitive).
+           NOTE: this command pulls the main repo FIRST, the submodules AFTER.
 -w       : only PUSH this git repository and the git submodules.
 -W       : only PUSH this git repository and the top level git submodules.
 -c       : cleanup git repositories: run this when you get
@@ -568,6 +659,4 @@ esac
 
 
 popd                                                                                                    2> /dev/null  > /dev/null
-
-
 

@@ -47,7 +47,7 @@ while getopts ":hlrc" opt ; do
   #echo opt+arg = "\$opt\$OPTARG"
   case "\$opt\$OPTARG" in
   l )
-    mode=h;
+    mode=l;
     ;;
 
   c )
@@ -59,8 +59,13 @@ while getopts ":hlrc" opt ; do
     ;;
 
   * )
-    cat <<EOH
-$usn options
+    ;;
+  esac
+done
+
+if test "\$mode" = "h" ; then
+  cat <<EOH
+checkout_to_known_git_branches_recursive.sh options
 
 Options:
 
@@ -76,12 +81,10 @@ for instance, you wish to reproduce this registered previous software state (whi
 represent a software release) which you wish to analyze/debug.
 
 EOH
-    exit 1;
-    ;;
-  esac
-done
+  exit 1;
+fi
 
-if test "\$mode" = "h" ; then
+if test "\$mode" = "l" ; then
   cat <<EOH
 
 Git repository directory                    :: commit hash                         / branch name
@@ -96,10 +99,12 @@ git_repo_checkout_branch() {
   if test "\$mode" = "c" || test "\$mode" = "r" ; then
     if test -d "\$1" ; then
       pushd "\$1"                                                               2> /dev/null  > /dev/null
+      printf "%-43s :: %s / %s\n" "\$1" "\$2" "\$3"
       if test "\$mode" = "c" ; then
         if test -n "\$3" ; then
           # make sure the branch is created locally and is a tracking branch:
-          git branch --track "\$3" "remotes/origin/\$3"                            2> /dev/null  > /dev/null
+          git branch --track "\$3" "remotes/origin/\$3"                          2> /dev/null  > /dev/null
+          git branch --set-upstream-to=remotes/origin/\$3 master                2> /dev/null  > /dev/null
           git checkout "\$3"
         else
           git checkout master
