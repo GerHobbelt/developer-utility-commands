@@ -9,7 +9,7 @@ function abortus_provocatus() {
 }
 
 function sanitize_name(name) {
-    return name
+    return name.toLowerCase()
     .replace(/\.org|\.com|\.net/g, '_')
     .replace(/[^a-z0-9_-]/g, '_')
     .replace(/[-_]+/g, '_');
@@ -76,6 +76,9 @@ try {
         var re_arbitrary_url = /^\s*(https?|git):\/\/([^\s\/]+)\/([^\s]+)\/([^\s\/]+)\/?\s*$/;
         var re_new_github_url = /^\s*git@github\.com:([^\s]+)\/([^\s\/]+)\/?\s*$/;
 
+        var re_gitlab_html_url = /^<a class="project" href="(\/[^"\s]+)">/;
+        var re_gitee_html_url = /<a target="_blank" href="(\/[^"\s]+)">([^"<\s]+)\s*(?:<\/a>)?/;
+
         var lines = data.replace('\r', '\n').split('\n');
         // Collect the lines matching either of our regexes:
         var m = lines.map(function (l) {
@@ -88,14 +91,16 @@ try {
             var m3 = re_StargazersDotCom.exec(l);
             var m4 = re_arbitrary_url.exec(l);
             var m5 = re_new_github_url.exec(l);
+	    var m6 = re_gitlab_html_url.exec(l);
+	    var m7 = re_gitee_html_url.exec(l);
 
             if (DEBUG) {
                 console.log(`DEBUG LINE: ${l.replace('\r', '')} 
-            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}, m4: ${m4}, m5: ${m5}
+            m1: ${m1}, m1a: ${m1a}, m1b: ${m1b}, m1c: ${m1c}, m1d: ${m1d}, m2: ${m2}, m3: ${m3}, m4: ${m4}, m5: ${m5}, m6: ${m6}, m7: ${m7}
 `);
             }
 
-            if (!!m1 + !!m2 + !!m3 + !!m4 + !!m5 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
+            if (!!m1 + !!m2 + !!m3 + !!m4 + !!m5 + !!m6 + !!m7 + !!m1a + !!m1b + !!m1c + !!m1d >= 2) {
                 console.error('### unexpected double/triple match for line: ', l);
                 abortus_provocatus();
             }
@@ -139,6 +144,41 @@ try {
                     m5[0].trim()
                 ];
             }
+            if (m6) {
+                let a = m6[1].split('/');
+		let user_name = a[1];
+		let repo_name = a[2];
+		if (DEBUG) {
+			console.log({ a, user_name, repo_name });
+		}
+                return [
+                    user_name,
+                    sanitize_name(`gitlab_fork:${user_name}`),
+                    `git@gitlab.com:${user_name}/${repo_name}.git`
+                ];
+            }
+            if (m7) {
+                let a = m7[1].trim().split('/');
+		let user_name = a[1];
+		let repo_name = a[2];
+                let b = m7[2].trim().split('/');
+		let full_user_name = b[0];
+		let uname = sanitize_name(user_name);
+		let uname2 = sanitize_name(full_user_name);
+		if (uname2.length > uname.length)
+			uname = uname2;
+		if (uname.length === 0)
+			uname = 'RND' + Math.round(Math.random() * 1E6);
+		
+		if (DEBUG) {
+			console.log({ a, user_name, repo_name, b, full_user_name, uname });
+		}
+                return [
+                    uname,
+                    sanitize_name(`gitee_fork:${uname}`),
+                    `https://gitee.com/${user_name}/${repo_name}.git`
+                ];
+            }
             if (!m2) {
                 m2 = re_gitremote.exec(l);
             }
@@ -151,6 +191,9 @@ try {
 
         var dedup = {};
         var users = m.map(function (d) {
+            if (DEBUG) {
+		console.log({ d })
+	    }
             return {
                 name: d[1],
                 repo: d[2].replace(/^git:\/\/github\.com/, "git@github.com:")
