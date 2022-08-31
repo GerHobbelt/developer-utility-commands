@@ -479,8 +479,7 @@ c )
     git reflog expire --expire-unreachable=now --all
     git gc --prune=now
     git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-    git repack -d
-    git repack -A
+    git repack -Adf
     #git update-ref
     git reflog expire --expire=now --expire-unreachable=now --all
     git gc --aggressive --prune=all
@@ -496,8 +495,7 @@ c )
   git reflog expire --expire-unreachable=now --all
   git gc --prune=now
   git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-  git repack -d
-  git repack -A
+  git repack -Adf
   #git update-ref
   git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
@@ -525,8 +523,7 @@ C )
     git reflog expire --expire-unreachable=now --all
     git gc --prune=now
     git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-    git repack -d
-    git repack -A
+    git repack -Adf
     #git update-ref
     git reflog expire --expire=now --expire-unreachable=now --all
     git gc --aggressive --prune=all
@@ -542,8 +539,7 @@ C )
   git reflog expire --expire-unreachable=now --all
   git gc --prune=now
   git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-  git repack -d
-  git repack -A
+  git repack -Adf
   #git update-ref
   git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
@@ -565,8 +561,7 @@ Z )
   git reflog expire --expire-unreachable=now --all
   git gc --prune=now
   git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-  git repack -d
-  git repack -A
+  git repack -Adf
   #git update-ref
   git reflog expire --expire=now --expire-unreachable=now --all
   git gc --aggressive --prune=all
