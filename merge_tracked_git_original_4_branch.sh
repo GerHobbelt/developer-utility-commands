@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Automatically merge the tracked 'original' repo branch of the same name as your current branch (usually master or main).
+# Automatically merge the tracked 'original' repo(s) branch of the same name as your current branch (usually master or main).
 #
 # All tracked git remotes which include the string 'original' and 'origin' in their repo owner's name will be analyzed and merged in order.
 # Merging will be aborted as soon as the automatic merge fails, e.g. due to merge failures/collisions which require human intervention.
@@ -70,13 +70,23 @@ else
 
       # EXTRA: nuke all obnoxious dependabot branches. URGH!
       for f in $( git branch -r | grep dependabot ) ; do git branch -dr $f ; done
+      for f in $( git branch -r | grep snyk-fix ) ; do git branch -dr $f ; done
+      for f in $( git branch -r | grep snyk-upgrade ) ; do git branch -dr $f ; done
 
       # now get the 'origin' + 'original' remotes:
-      rmts=$( git branch -r | grep origin | grep -v -e '->' | grep -e "$bns" );
+      rmts=$( git branch -r | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
+      echo "rmts=$rmts"
       if test -z "$rmts" ; then
         break
       fi
       
+      # also merge remote originals which have moved from 'master' to 'main', while we haven't:
+      rmts2=$( git branch -r | grep origin | grep -v -e '->' | grep -e "/main\$" );
+      if test "$bns" = "master" ; then
+        if test -n "$rmts2" ; then
+          rmts="$rmts $rmts2"
+        fi
+      fi
       echo "rmts=$rmts"
             
       for f in $rmts ; do
