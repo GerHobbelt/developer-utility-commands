@@ -19,7 +19,9 @@ export SSH_ASKPASS=echo
 export GCM_INTERACTIVE=never
 
 #GIT_PARALLEL_JOBS_CMDARG=-j7
-GIT_PARALLEL_JOBS_CMDARG=-j4
+GIT_PARALLEL_JOBS_CMDARG=-j32
+
+GPP_PROCESS_SUBMODULES=ALL
 
 wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
@@ -70,13 +72,28 @@ collectImportantRemotes() {
 
 
 
-getopts ":RcCfFqQpPwWlLgGsZxh" opt
+while getopts ":RcCfFqQpPwWlLgGsZx01h" opt; do
 #echo opt+arg = "$opt$OPTARG"
+
+if [ "$GPP_PROCESS_SUBMODULES" = "ALL" ] ; then
+  GPP_FIND_DEPTH_LIMITER=
+  GPP_SUBMOD_RECURSIVE_OPT=--recursive
+elif [ "$GPP_PROCESS_SUBMODULES" = "L1" ] ; then
+  # Assumption: sub-sub-modules are all located more than 3 directory levels deep, not just two as you'd naively expect:
+  # this is due to our directory structure and third-party repo's often parking third-party submodules in 
+  # third_party/reponame/ directories or alike.
+  GPP_FIND_DEPTH_LIMITER=-maxdepth 3
+  GPP_SUBMOD_RECURSIVE_OPT=
+else
+  GPP_FIND_DEPTH_LIMITER=-maxdepth 1
+  GPP_SUBMOD_RECURSIVE_OPT=
+fi
+
 case "$opt$OPTARG" in
 "?" )
   echo "--- pull/push every git repo in this directory tree ---"
   #echo full - args: $@
-  for f in $( find . -name '.git' ) ; do
+  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     f=$( dirname "$f" )
     echo "### processing PATH/SUBMODULE: $f"
@@ -103,7 +120,8 @@ x )
     shift
   done
   echo command: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -111,6 +129,7 @@ x )
     $@
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   echo $@
   $@
@@ -122,7 +141,8 @@ f )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -140,6 +160,7 @@ f )
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
@@ -160,6 +181,7 @@ F )
     shift
   done
   #echo args: $@
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
@@ -178,6 +200,7 @@ F )
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
@@ -198,7 +221,8 @@ q )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -210,6 +234,9 @@ q )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  else
+    echo "--- Nothing to do ---"
+  fi
   ;;
 
 Q )
@@ -218,6 +245,7 @@ Q )
     shift
   done
   #echo args: $@
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
@@ -230,6 +258,9 @@ Q )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  else
+    echo "--- Nothing to do ---"
+  fi
   ;;
 
 p )
@@ -238,7 +269,8 @@ p )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -248,6 +280,7 @@ p )
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
@@ -260,6 +293,7 @@ P )
     shift
   done
   #echo args: $@
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
@@ -270,6 +304,7 @@ P )
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
@@ -282,7 +317,8 @@ w )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -292,6 +328,7 @@ w )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git push --all --follow-tags                                            2>&1
@@ -304,6 +341,7 @@ W )
     shift
   done
   #echo args: $@
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
@@ -314,6 +352,7 @@ W )
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git push --all --follow-tags                                            2>&1
@@ -329,7 +368,8 @@ R )
 
   # reset main project first to (possibly) restore the submodules to their intended commit position before we reset them
   git reset --hard                                                        2>&1
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### RESET-ting PATH/SUBMODULE: $f"
     cd $f
@@ -338,6 +378,7 @@ R )
     git reset --hard                                                      2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### RESET-ing MAIN REPO: $wd"
   $@
   git reset --hard                                                        2>&1
@@ -350,12 +391,14 @@ l )
   done
   #echo $@
   $@
-  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
-  # report which submodules need attention (they will be done automatically, but it doesn't hurt to report them, in case things go pearshaped)
-  git push --all --follow-tags --recurse-submodules=check                 2>&1
-  git push --all --recurse-submodules=on-demand                           2>&1
-
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
+    # report which submodules need attention (they will be done automatically, but it doesn't hurt to report them, in case things go pearshaped)
+    git push --all --follow-tags --recurse-submodules=check                 2>&1
+    git push --all --recurse-submodules=on-demand                           2>&1
+  fi
+  
   # even when the above commands b0rk, pull/push this repo anyway
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
@@ -385,7 +428,8 @@ L )
   git push --all                            								2>&1
   rm -f __git_lazy_remotes__
 
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -403,6 +447,7 @@ L )
     rm -f __git_lazy_remotes__
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   ;;
 
 g )
@@ -412,9 +457,11 @@ g )
   done
   #echo $@
   $@
-  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
-
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
+    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
+  fi
+  
   # even when the above commands b0rk, pull this repo anyway
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
@@ -440,7 +487,8 @@ G )
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        		        	2>&1
   rm -f __git_lazy_remotes__
 
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -456,6 +504,7 @@ G )
     rm -f __git_lazy_remotes__
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   ;;
 
 c )
@@ -464,7 +513,8 @@ c )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -487,6 +537,7 @@ c )
     git remote prune origin
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git gc
@@ -509,6 +560,7 @@ C )
     shift
   done
   #echo args: $@
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
@@ -531,6 +583,7 @@ C )
     git remote prune origin
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git gc
@@ -575,7 +628,8 @@ s )
     shift
   done
   #echo args: $@
-  for f in $( git submodule foreach --recursive --quiet pwd ) ; do
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -584,16 +638,29 @@ s )
     git push -u origin --all
     popd                                                                  2> /dev/null  > /dev/null
   done
+  fi
   echo "### processing MAIN REPO: $wd"
   $@
   git push -u origin --all
   ;;
 
+0 )
+  echo "--- process base repo only; DO NOT process any submodules ---"
+  GPP_PROCESS_SUBMODULES=NONE
+  ;;
+
+1 )
+  echo "--- process base repo + first level of submodules only ---"
+  GPP_PROCESS_SUBMODULES=L1
+  ;;
+
 * )
   cat <<EOT
-$0 [-c] [-f] [-l] [-p] [-g] [-q] [-R] [-s] [args]
+$0 [commands+options] [args]
 
 pull & push all git repositories in the current path.
+
+Commands:
 
 -l       : 'lazy': let git (1.8+) take care of pushing all submodules' changes
            which are relevant: this is your One Stop Push Shop.
@@ -629,8 +696,18 @@ pull & push all git repositories in the current path.
            in your VM.
 -x       : execute the given command in the repository and each git submodule.
 
-<no opt> : pull/push ANY git repository find in the current directory tree.
+<any other / no command> 
+         : pull/push ANY git repository find in the current directory tree.
 
+
+Options:
+
+-0       : DO NOT apply the next command(s) to any submodules, but only to the
+           current (base) repository.
+-1       : apply the next command(s) to first-level submodules, plus the
+           current (base) repository.
+
+	   
 When further commandline [args] are specified, those are treated as a command
 and executed for each directory containing a git repository. E.g.:
 
@@ -651,7 +728,7 @@ git submodule directory visited by the git_pull_push command/script.)
 EOT
   ;;
 esac
-
+done
 
 popd                                                                                                    2> /dev/null  > /dev/null
 
