@@ -35,8 +35,8 @@ exit_err() {
   exit 1
 }
  
-if git submodule status "$submodule_name" >/dev/null 2>&1; then
-  git submodule deinit -f "$submodule_name"
+#if git submodule status "$submodule_name" >/dev/null 2>&1; then
+  git submodule deinit --force "$submodule_name"
   git rm -f "$submodule_name"
  
   echo "Removing $submodule_name section from the .gitmodules file..."
@@ -49,7 +49,7 @@ if git submodule status "$submodule_name" >/dev/null 2>&1; then
 
   # post-partum fixups for buggy situations we've found ourselves in
   git rm -r --cached "$submodule_name"
-else
-  exit_err "Submodule '$submodule_name' not found"
-fi
+#else
+#  exit_err "Submodule '$submodule_name' not found"
+#fi
 

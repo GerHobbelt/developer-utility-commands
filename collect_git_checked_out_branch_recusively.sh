@@ -69,7 +69,7 @@ checkout_to_known_git_branches_recursive.sh options
 
 Options:
 
--h      : print this help 
+-h      : print this help
 -l      : LIST the branch/commit for each git repository (directory) registered in this script.
 -c      : CHECKOUT each git repository to the BRANCH registered in this script.
 -r      : CHECKOUT/REVERT each git repository to the COMMIT registered in this script.
@@ -77,7 +77,7 @@ Options:
 Note:
 
 Use the '-r' option to set each repository to an exact commit position, which is useful if,
-for instance, you wish to reproduce this registered previous software state (which may 
+for instance, you wish to reproduce this registered previous software state (which may
 represent a software release) which you wish to analyze/debug.
 
 EOH
@@ -102,14 +102,40 @@ git_repo_checkout_branch() {
       printf "%-43s :: %s / %s\n" "\$1" "\$2" "\$3"
       if test "\$mode" = "c" ; then
         if test -n "\$3" ; then
-          # make sure the branch is created locally and is a tracking branch:
-          git branch --track "\$3" "remotes/origin/\$3"                          2> /dev/null  > /dev/null
-          git branch --set-upstream-to=remotes/origin/\$3 master                2> /dev/null  > /dev/null
-          git checkout "\$3"
+          # make sure the branch is created locally and is a tracking branch, if it isn't already:
+          # https://www.cyberciti.biz/faq/bash-remove-whitespace-from-string/
+          current_branch=\$( git branch --show-current )
+          if test -z "\$current_branch" -o "\$current_branch" != "\$3" ; then
+            git checkout "\$3"
+          fi
+
+          shopt -s extglob
+          remote_branch=\$( git branch -vv --list \$3 '--format=%(upstream)' )
+          # Trim leading whitespaces
+          remote_branch="\${remote_branch##*( )}"
+          # Trim trailing whitespaces
+          remote_branch="\${remote_branch%%*( )}"
+          echo "=\${remote_branch}="
+          shopt -u extglob
+
+          if test -z "\$remote_branch" ; then
+            echo "No remote branch registered for local branch: \$3 --> setting up the remote."
+            git branch --track "\$3" "remotes/origin/\$3"                          2> /dev/null  > /dev/null
+            git branch --set-upstream-to=remotes/origin/\$3 \$3                    2> /dev/null  > /dev/null
+            git checkout "\$3"
+          fi
         else
-          git checkout master
-          if test \$? -ne 0 ; then
-            git checkout main
+          current_branch=\$( git branch --show-current )
+          echo "=\${current_branch}="
+          if test -z "\$current_branch" -o "\$current_branch" != "master" ; then
+            # checkout to the first of \`master\` or \`main\` in case we're not checked out to either right now:
+            if test "\$current_branch" != "main" -a "\$current_branch" != "master" ; then
+              echo "Checking out to master/main:"
+              git checkout master
+              if test \$? -ne 0 ; then
+                git checkout main
+              fi
+            fi
           fi
         fi
       else
