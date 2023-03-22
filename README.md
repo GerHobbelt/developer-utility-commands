@@ -54,7 +54,7 @@ have to disagree on that issue.)
 
   **NOTE: the scripts accepts a directory as single parameter; when none is provided the current directory is assumed.**
 
-  **NOTE**: this (and the other nuke script) are now also available in the genric tools/utility directory / repo https://github.com/GerHobbelt/developer-utility-commands as this is more relevant for other projects.
+  **NOTE**: this (and the other nuke script) are now also available in the generic tools/utility directory / repo https://github.com/GerHobbelt/developer-utility-commands as this is more relevant for other projects.
 
   Go through all the development project directories, find any `npm` installed packages that can be safely erased and then `rm -rf` those `node_modules` directories in bulk.
 
