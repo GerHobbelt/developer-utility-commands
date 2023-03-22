@@ -68,11 +68,14 @@ else
       echo "bns=$bns"
       echo "bc=$bc"
 
-      # EXTRA: nuke all obnoxious dependabot branches. URGH!
+      # EXTRA: nuke all obnoxious dependabot + Snyk + ICU branches. URGH!
       for f in $( git branch -r | grep dependabot ) ; do git branch -dr $f ; done
       for f in $( git branch -r | grep snyk-fix ) ; do git branch -dr $f ; done
       for f in $( git branch -r | grep snyk-upgrade ) ; do git branch -dr $f ; done
+      for f in $( git branch -r | grep perfdata ) ; do git branch -dr $f ; done
 
+      git gc --auto --prune
+      
       # now get the 'origin' + 'original' remotes:
       rmts=$( git branch -r | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
       echo "rmts=$rmts"
@@ -88,7 +91,17 @@ else
         fi
       fi
       echo "rmts=$rmts"
-            
+      
+      # also merge remote originals/forks mentioned on the command line:
+      if test -n "$2" ; then
+        rmts2=$( git branch -r | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
+        if test -n "$rmts2" ; then
+          rmts="$rmts $rmts2"
+        fi
+        echo "rmts=$rmts"
+        shift
+      fi
+      
       for f in $rmts ; do
         echo "TRACKED BRANCH=$f"
         
@@ -104,10 +117,10 @@ else
           echo "git rev-list --ancestry-path $anc..$f"
           git rev-list --ancestry-path $anc..$f | tac > /tmp/mtgo_tmp.txt
           # calc the number of commits to merge; then calculate the 'step' we need to ensure
-          # we'll be doing, at most, N(=30) merges.
+          # we'll be doing, at most, N(=50) merges.
           # Also make sure we do not merge *every commit* as that's way too much hassle too, so assume a minimum 'step' of, say, 5.
           lc=$( cat /tmp/mtgo_tmp.txt | wc -l )
-          jmpc=$(( $lc / 30 ));
+          jmpc=$(( $lc / 50 ));
           jmpcadj=$(( $jmpc < 5 ? 5 : $jmpc ));
           
           echo "lc=$lc"
