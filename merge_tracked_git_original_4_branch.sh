@@ -97,6 +97,11 @@ else
         rmts2=$( git branch -r | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
+	elif [[ "$2" == *"/"* ]]; then
+          rmts2=$( git branch -r | grep "$2" | grep -v -e '->' );
+          if test -n "$rmts2" ; then
+            rmts="$rmts $rmts2"
+	  fi
         fi
         echo "rmts=$rmts"
         shift
