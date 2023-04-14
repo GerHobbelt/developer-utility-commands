@@ -17,8 +17,8 @@ cd ..
 wd=$( tools/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
-          
-          
+
+
 function help()
 {
   cat <<EOT

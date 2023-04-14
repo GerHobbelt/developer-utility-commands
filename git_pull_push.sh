@@ -14,7 +14,7 @@ export GIT_SSH_COMMAND='ssh -oBatchMode=yes'
 # these should shut up git asking, but only partly: the X-windows-like dialog doesn't pop up no more, but ...
 export GIT_ASKPASS=echo
 export SSH_ASKPASS=echo
-# We needed to find *THIS* to shut up the bloody git-for-windows credential manager: 
+# We needed to find *THIS* to shut up the bloody git-for-windows credential manager:
 # https://stackoverflow.com/questions/37182847/how-do-i-disable-git-credential-manager-for-windows#answer-45513654
 export GCM_INTERACTIVE=never
 
@@ -32,12 +32,12 @@ cd "$wd"
 
 # How to obtain the default repository owner?
 # -------------------------------------------
-# 
+#
 # 1. extract the name of the owner of the repository your currently standing in
 # 2. if that doesn't work, get the locally configured github user as set up in the git repository you're standing in
 # 3. if that doesn't work, get the local system globally configured github user
 # 4. okay, nothing works. So you must be GerHobbelt on a fresh machine, right?
-# 
+#
 # Note: the RE is engineered to eat ANYTHING and only extract username from legal git r/w repository URLs (git@github.com:user/repo.git)
 # Note: this RE should work with BSD/OSX sed too:  http://stackoverflow.com/questions/12178924/os-x-sed-e-doesnt-accept-extended-regular-expressions
 getRepoOwner() {
@@ -59,14 +59,14 @@ getRepoOwner() {
 
 collectImportantRemotes() {
 	(
-	  	git remote -v | grep -i "${grepExpr}" | cut -f 1 
+	  	git remote -v | grep -i "${grepExpr}" | cut -f 1
 	  	# also collect all remotes already are known to have done *something* in the last 2 months.
 	  	# This will thus 'ignore' all 'inactive' remotes.
 	        #
 	        # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
 	        # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
-	        # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch. 
-	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }' 
+	        # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch.
+	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }'
 	) | sort | uniq > __git_lazy_remotes__
 }
 
@@ -80,7 +80,7 @@ if [ "$GPP_PROCESS_SUBMODULES" = "ALL" ] ; then
   GPP_SUBMOD_RECURSIVE_OPT=--recursive
 elif [ "$GPP_PROCESS_SUBMODULES" = "L1" ] ; then
   # Assumption: sub-sub-modules are all located more than 3 directory levels deep, not just two as you'd naively expect:
-  # this is due to our directory structure and third-party repo's often parking third-party submodules in 
+  # this is due to our directory structure and third-party repo's often parking third-party submodules in
   # third_party/reponame/ directories or alike.
   GPP_FIND_DEPTH_LIMITER="-maxdepth 3"
   GPP_SUBMOD_RECURSIVE_OPT=
@@ -398,7 +398,7 @@ l )
     git push --all --follow-tags --recurse-submodules=check                 2>&1
     git push --all --recurse-submodules=on-demand                           2>&1
   fi
-  
+
   # even when the above commands b0rk, pull/push this repo anyway
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
@@ -421,7 +421,7 @@ L )
   collectImportantRemotes
   #echo "Remotes:"
   #cat __git_lazy_remotes__
-  
+
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        				2>&1
   git push --all --follow-tags                  							2>&1
@@ -461,7 +461,7 @@ g )
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
   fi
-  
+
   # even when the above commands b0rk, pull this repo anyway
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
@@ -482,7 +482,7 @@ G )
   collectImportantRemotes
   #echo "Remotes:"
   #cat __git_lazy_remotes__
-  
+
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        		        	2>&1
   rm -f __git_lazy_remotes__
@@ -683,9 +683,9 @@ Commands:
 -W       : only PUSH this git repository and the top level git submodules.
 -c       : cleanup git repositories: run this when you get
            error 'does not point to valid object'
--C       : cleanup top level git repositories + first-level submodules: 
+-C       : cleanup top level git repositories + first-level submodules:
            run this when you get error 'does not point to valid object'
--Z       : cleanup top level git repository only: 
+-Z       : cleanup top level git repository only:
            run this when you get error 'does not point to valid object'
 -s       : setup/reset all upstream (remote:origin) references for each
            submodule and push the local repo. This one ensures a 'git push --all'
@@ -696,7 +696,7 @@ Commands:
            in your VM.
 -x       : execute the given command in the repository and each git submodule.
 
-<any other / no command> 
+<any other / no command>
          : pull/push ANY git repository find in the current directory tree.
 
 
@@ -707,7 +707,7 @@ Options:
 -1       : apply the next command(s) to first-level submodules, plus the
            current (base) repository.
 
-	   
+
 When further commandline [args] are specified, those are treated as a command
 and executed for each directory containing a git repository. E.g.:
 
@@ -715,12 +715,12 @@ and executed for each directory containing a git repository. E.g.:
 
 will execute a 'git commit -a' for every git repository.
 
-WARNING / NOTE: 
+WARNING / NOTE:
 Quoted extra command arguments don't get processed properly yet (we use bash's \$\@)
 so you're best served by coding your command(s) in a temporary bash shell script,
 then pass the ABSOLUTE PATH to that shell script as the command to execute. E.g.:
 
-  $0 /z/lib/tooling/qiqqa/tmp.sh 
+  $0 /z/lib/tooling/qiqqa/tmp.sh
 
 (The absolute path makes sure that shell script is found and executable from every
 git submodule directory visited by the git_pull_push command/script.)

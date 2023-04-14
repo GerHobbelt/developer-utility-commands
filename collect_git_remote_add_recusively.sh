@@ -35,7 +35,7 @@ tmpfile=/tmp/util-cgrar-$RANDOM-$RANDOM.list
 echo "Entering '.'"                                      > $tmpfile
 git remote -v                                           >> $tmpfile
 git submodule foreach --recursive $@ git remote -v      >> $tmpfile
-cat "$utildir/collect_git_remote_add_recusively.header" > "$dstfile" 
+cat "$utildir/collect_git_remote_add_recusively.header" > "$dstfile"
 cat $tmpfile | gawk -f "$utildir/collect_git_remote_add_recusively.awk" >> "$dstfile"
 rm $tmpfile
 

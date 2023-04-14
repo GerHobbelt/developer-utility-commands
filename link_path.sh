@@ -1,23 +1,23 @@
 #! /bin/bash
 #
 # Utility to help create/delete the __server/htdocs symlink/junction, e.g.
-# 
+#
 #     link_path __server/htdocs server/v3/htdocs
-#     
+#
 # This tool is 'smart' in that is will back up to the point where the real link must be made,
 # in the example above it would be identical to
-# 
+#
 #     link_path __server server/v3
-# 
+#
 # because the 'v3' repository already has that `htdocs/` directory itself.
-# 
+#
 # On the other hand,
-# 
+#
 #     link_path __server/htdocs server/v2
-# 
+#
 # is created as is since you point __server/htdocs at a directory chain which does NOT end
 # in `htdocs`.
-# 
+#
 
 wd="$( pwd )"
 
@@ -31,7 +31,7 @@ cd "$wd"
 
 # http://stackoverflow.com/questions/18641864/git-bash-shell-fails-to-create-symbolic-links
 
- 
+
 # We still need this.
 windows() { test -n "$WINDIR" ; }
 
@@ -46,7 +46,7 @@ link() {
     # 'smart heuristic': walk back up as long as ref and dest directory names are the same
     refparent=$( dirname "$ref" );
     targetparent=$( dirname "$target" );
-    while test "$refparent" = "$targetparent" && test "$refparent" != "." ; do 
+    while test "$refparent" = "$targetparent" && test "$refparent" != "." ; do
         #echo common: $( basename "$ref" )
         ref=$( dirname "$ref" );
         target=$( dirname "$target" );
@@ -58,7 +58,7 @@ link() {
     # 'smart heuristic 2': create parents of ref as directories
     refparent=$( dirname "$ref" );
     #echo refparent: $refparent
-    if ! test -z "$refparent" -o "$refparent" = "." ; then 
+    if ! test -z "$refparent" -o "$refparent" = "." ; then
         #echo mk parent: $refparent
         mkdir -p "$refparent"
         cd "$refparent"
@@ -69,7 +69,7 @@ link() {
             refparent=$( dirname "$refparent" );
         done
     fi
-    
+
     #echo link $ref   --\>  $target
     if test -z "$target" ; then
         # Link-checking mode.
@@ -111,7 +111,7 @@ link() {
 # Remove a link, cross-platform.
 rmlink() {
     path="$1"
-    while ! test -z "$path" -o "$path" = "." ; do 
+    while ! test -z "$path" -o "$path" = "." ; do
         #echo rmlink $path
         if test -a "$path" ; then
             rmdir "$path"                                              2> /dev/null  > /dev/null

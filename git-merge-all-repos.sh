@@ -19,10 +19,10 @@ rootdir="$( pwd )";
 cd "$wd"
 
 
-for f in $( find . -name '.git' ) ; do 
+for f in $( find . -name '.git' ) ; do
 	p=$( dirname $f )
-	if test -e "$p/.git" ; then  
-		echo ">>>> $p" 
+	if test -e "$p/.git" ; then
+		echo ">>>> $p"
 		pushd "$p"
 		pwd
 
@@ -32,6 +32,6 @@ for f in $( find . -name '.git' ) ; do
 		# do the git update (marge tracked original branch) as far we can go:
 		$rootdir/tools/merge_tracked_git_original_4_branch.sh -m
 
-		popd 
+		popd
 	fi
 done

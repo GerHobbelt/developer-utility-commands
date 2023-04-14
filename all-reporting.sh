@@ -67,7 +67,7 @@ collect_stats() {
 	  $tooldir/git-quick-stats.sh detailedGitStats | tee "$root_dir/git-reporting/$my_name/$repo_name/$d.detailedGitStats.report.txt"
 	  $tooldir/git-quick-stats.sh commitsPerAuthor | tee "$root_dir/git-reporting/$my_name/$repo_name/$d.commitsPerAuthor.report.txt"
 	done
-} 
+}
 
 # go!
 collect_stats
@@ -108,7 +108,7 @@ collect_stats
 
 
 # # other V-private repositories
-# _key-material-for-administrators 
+# _key-material-for-administrators
 #
 # frontend/UI-components            (these were split off as we wanted to organize server/v2 repo, but was there any work done in here?)
 # frontend/application
@@ -116,7 +116,7 @@ collect_stats
 # frontend/kernel
 # frontend/native-mobile-apps
 #
-# laboratory/data-visualization 
+# laboratory/data-visualization
 # laboratory/site-design
 #
 # lib (not private stuff)

@@ -3,7 +3,7 @@
 # Taken from:
 #     http://stackoverflow.com/questions/2564634/bash-convert-absolute-path-into-relative-path-given-a-current-directory
 # and augmented to support relative-to-current-directory input paths.
-#     
+#
 
 if test "$#" != 2 ; then
   cat <<EOT
@@ -34,7 +34,7 @@ mkCleanAbsPath() {
     # special case: the input path ends with a "." or "..":
     if test "$f" == "." || test "$f" == ".." ; then
       cd "$1"
-      pwd      
+      pwd
     else
       d="$( pwd )";
       echo "$d/$f"
@@ -44,7 +44,7 @@ mkCleanAbsPath() {
 
 
 # both $1 and $2 must be turned into absolute paths beginning with /
-# 
+#
 # The rest of the code produces the relative path to $2/$target from $1/$source
 # (Note: use `sed` to patch the `SUBST Z:` we're using lately. )
 source=$( mkCleanAbsPath "$1" | sed -e 's/^\/z\//\/w\/Projects\/sites\/library.visyond.gov\/80\//' );

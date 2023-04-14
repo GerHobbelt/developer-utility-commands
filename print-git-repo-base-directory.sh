@@ -2,10 +2,10 @@
 #
 # Print the path of the nearest parent directory which is a git repository root directory
 # and return exit code 0.
-# 
+#
 # If there is no git repository in the current directory or any of its parents, print
 # the current directory and return exit code 1.
-#    
+#
 
 find_git_base() {
     d="$1"

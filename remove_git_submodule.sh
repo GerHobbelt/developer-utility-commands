@@ -1,12 +1,12 @@
 #!/bin/bash
-# 
+#
 # Work repo: https://gist.github.com/GerHobbelt/5f084b559d3197c04e90dfd018a00ee6
 #
 # Sources:
 # https://stackoverflow.com/a/16162000/1635910
 # https://gist.github.com/myusuf3/7f645819ded92bda6677
 # https://stackoverflow.com/questions/1260748/how-do-i-remove-a-submodule/1260982#1260982
-# 
+#
 if [ $# -ne 1 ]; then
         cat <<EOT
 
@@ -18,7 +18,7 @@ to help you construct the path quickly.
 
 Note:
 
-You must run this script from the base directory of the parent repository, which 
+You must run this script from the base directory of the parent repository, which
 contains the submodule you want to remove. (If that repo is a submodule itself,
 this script will take cope anyhow.)
 In other words: there MUST be a valid .git directory or .git file in your PWD!

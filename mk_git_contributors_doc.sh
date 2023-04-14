@@ -1,11 +1,11 @@
 #! /bin/bash
 #
 # Generate a git-based CONTRIBUTORS.md list/document from the repo data.
-# 
+#
 # Extra: when the .CONTRIBUTORS.supplement file exists, do add those entries as well!
 # The .CONTRIBUTORS.supplement file can use the same format as the regular `git log` output:
 # after all, it is concatenated!`
-# 
+#
 
 echo "Collecting data from git repo..."
 
@@ -24,9 +24,9 @@ git rev-list HEAD | xargs git show --no-patch --pretty --date=short >> $TMPDATA
 # https://tldp.org/LDP/abs/html/here-docs.html  ("Here documents create temporary files, but these files are deleted after opening and are not accessible to any other process.")
 # https://nodejs.dev/learn/nodejs-streams
 # https://github.com/nodejs/node-v0.x-archive/issues/7412  (bloody node still does take a bunch of code to read stdin: see node streams link above.)
-# 
+#
 # Now this here is a nasty/clever way to feed node a temporary script with temporary data. hurr-di-hurr... >8-P
-# 
+#
 # EDIT: pity: bash on Windows doesn't seem to support this:
 #   cat <<EOF1 <<EOF2
 #   first here-doc
@@ -34,7 +34,7 @@ git rev-list HEAD | xargs git show --no-patch --pretty --date=short >> $TMPDATA
 #   second here-doc
 #   EOF2
 # as it prints only the second heredoc. Bummer!
-# 
+#
 # So we do it step by step (Node also doesn't like its script to be fed into it via heredoc: it doesn't show up as argv[] element!)
 
 grep -E '^(Date|Author|commit|---------)' < $TMPDATA > $TMPDATA.b
@@ -54,10 +54,10 @@ let collabs_per_author = {};
 let collabs_per_year = {};
 
 let datum = {
-	year: undefined, 
-	quarter: undefined, 
-	author: undefined, 
-	email: undefined, 
+	year: undefined,
+	quarter: undefined,
+	author: undefined,
+	email: undefined,
 	commit: []
 };
 let datum_fill = 0;
@@ -92,10 +92,10 @@ function push_datum(next_fill_bit) {
 			}
 		}
 		datum = {
-			year: undefined, 
-			quarter: undefined, 
-			author: undefined, 
-			email: undefined, 
+			year: undefined,
+			quarter: undefined,
+			author: undefined,
+			email: undefined,
 			commit: []
 		};
 		datum_fill = 0;
@@ -233,7 +233,7 @@ function format_author(auth, mail) {
 	mail = mail
 		.replace(/\./g, ' dot ')
 		.replace(/@/g, ' at ');
-	//console.error('author mangled:', {auth, mail});		
+	//console.error('author mangled:', {auth, mail});
 	if (mail.length === 0)
 		return auth;
 	else {
@@ -241,22 +241,22 @@ function format_author(auth, mail) {
 		//return \`\${ auth } <\${ mail }>\`;
 		return auth;
 	}
-} 
+}
 
 function format_years(year_start, year_end) {
-	if (year_start !== year_end) 
+	if (year_start !== year_end)
 		return \` (\${year_start} – \${year_end}) \`;
-	else 
+	else
 		return \` (\${year_start}) \`;
-} 
+}
 
 function format_contributions(commit_list) {
 	return \` (\${ commit_list.length } commit\${ commit_list.length > 1 ? 's' : '' }) \`;
-} 
+}
 
 function format_year(year) {
 	return year;
-} 
+}
 
 function format_authors(author_list) {
 	let a = author_list.map((d) => {
@@ -302,7 +302,7 @@ console.log(\`
 for (let yi of Object.keys(summary_per_year).sort((a, b) => b - a)) {
 	datum = summary_per_year[yi];
 
-	console.log(\`+ \${ format_year(datum.year) } 
+	console.log(\`+ \${ format_year(datum.year) }
 \${ format_authors(Object.values(datum.author_list)) }
 	\`);
 }

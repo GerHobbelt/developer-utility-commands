@@ -2,7 +2,7 @@
 #
 # HELP/NOTE: get online help by calling with:   -h
 #
-# 
+#
 # checkout all submodules to their desired 'HEAD' bleeding edge revision: MASTER for most.
 #
 

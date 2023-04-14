@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Original can be found here:  https://github.com/arzzen/git-quick-stats
-# 
+#
 
 set -o nounset
 set -o errexit

@@ -22,7 +22,7 @@ export GIT_SSH_COMMAND='ssh -oBatchMode=yes'
 # these should shut up git asking, but only partly: the X-windows-like dialog doesn't pop up no more, but ...
 export GIT_ASKPASS=echo
 export SSH_ASKPASS=echo
-# We needed to find *THIS* to shut up the bloody git-for-windows credential manager: 
+# We needed to find *THIS* to shut up the bloody git-for-windows credential manager:
 # https://stackoverflow.com/questions/37182847/how-do-i-disable-git-credential-manager-for-windows#answer-45513654
 export GCM_INTERACTIVE=never
 
@@ -36,23 +36,23 @@ if test "$1" == "-q" ; then
     quietMode=1
 else
     quietMode=0
-fi  
+fi
 
 
 if test $# -eq 0 ; then
     cat <<EOT
 $0 [-q] [<forks>]
 
-Add any fork names (github users) as additional repository remotes to the current git 
+Add any fork names (github users) as additional repository remotes to the current git
 repository, i.e. the git repository which manages the current working directory.
 
-Instead of the <forks> you can specify a JSON file as obtained raw 
+Instead of the <forks> you can specify a JSON file as obtained raw
 from github by specifying its relative or absolute path: it is recognized
 as a path just as long as you make sure there's at least one slash '/'
 in it.
 
 We also accept other files containing forks info: screengrabs from the github 'Members'
-area (useful when the project has more than 1000 forks, which results in github not 
+area (useful when the project has more than 1000 forks, which results in github not
 rendering the graph view any more, hence no JSON 'meta' file can be obtained!) and screengrabs
 from the github 'Pull Requests' area. In other words: when you specify a non-JSON file,
 any line in it with one of the formats below is processed and turned into a remote reference.
@@ -74,7 +74,7 @@ Example usage:
      tools/git_add_remotes.sh tigbro
      tools/git_add_remotes.sh tigbro @./network_meta
 
-  which will register git@github.com:tigbro/<current-repo-name>.git and any forks listed in 
+  which will register git@github.com:tigbro/<current-repo-name>.git and any forks listed in
   the github metadata file found in ./network_meta
 
 EOT
@@ -90,11 +90,11 @@ else
 Adding remotes to a git repository:
   $repo
 
-We assume this (git/github) URL points at the remote repository which has previously been 
+We assume this (git/github) URL points at the remote repository which has previously been
 cloned locally!
 
   url =         git@github.com:<githubowner>/$repo.git
-  destination = $wd 
+  destination = $wd
 -------------------------------------------------------------------------------------------
 EOT
 

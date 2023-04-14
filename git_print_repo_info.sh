@@ -2,12 +2,12 @@
 
 # How to obtain the default repository owner?
 # -------------------------------------------
-# 
+#
 # 1. extract the name of the owner of the repository your currently standing in
 # 2. if that doesn't work, get the locally configured github user as set up in the git repository you're standing in
 # 3. if that doesn't work, get the local system globally configured github user
 # 4. okay, nothing works. So you must be GerHobbelt on a fresh machine, right?
-# 
+#
 # Note: the RE is engineered to eat ANYTHING and only extract username from legal git r/w repository URLs (git@github.com:user/repo.git)
 # Note: this RE should work with BSD/OSX sed too:  http://stackoverflow.com/questions/12178924/os-x-sed-e-doesnt-accept-extended-regular-expressions
 getRepoOwner() {
@@ -49,7 +49,7 @@ rv=0;
 if test $# = 0 ; then
   cat <<EOT
 
-ERROR: no commandline command option has been specified. Run 
+ERROR: no commandline command option has been specified. Run
   $0 -h
 to see the online help for this utility script.
 
@@ -191,22 +191,22 @@ Command Options:
 
 -n      : Print the git repository NAME
 
--u      : Print the git repository URL  
+-u      : Print the git repository URL
 
 -o      : Print the git repository OWNER's name
 
 -m      : Print YOUR github username.
-          This is what you'll get when using this '-m' parameter with the 
+          This is what you'll get when using this '-m' parameter with the
           'tools/git-add-new-submodule.sh' utility script.
 
 -b      : Print the currently checked out BRANCH name (symbolic) or commit hash.
-          A 'commit hash' is printed if you are checked out to a specific commit 
+          A 'commit hash' is printed if you are checked out to a specific commit
           which does NOT have branch label name, i.e. you're running in 'detached HEAD' mode!
 
--B      : Like '-b', but returns error (error code: 4) when running in 'detached HEAD' mode 
+-B      : Like '-b', but returns error (error code: 4) when running in 'detached HEAD' mode
           as described above.
 
--c / -C : same as '-b' and '-B' respectively, but print the 'short' branch name / commit ID 
+-c / -C : same as '-b' and '-B' respectively, but print the 'short' branch name / commit ID
           instead.
 
           **NOTE**: though '-c' and '-C' might output more 'human-friendly' branch names,
@@ -225,7 +225,7 @@ EOT
     "?" )
       cat <<EOT
 
-ERROR: no commandline option specified. Run 
+ERROR: no commandline option specified. Run
   $0 -h
 to see the online help for this utility script.
 
@@ -236,9 +236,9 @@ EOT
     * )
       cat <<EOT
 
-ERROR: unknown commandline option 
+ERROR: unknown commandline option
   -$OPTARG
-specified. Run 
+specified. Run
   $0 -h
 to see the online help for this utility script.
 
@@ -258,7 +258,7 @@ EOT
 ERROR: surplus unknown, unsupported commandline parameters
   $@
 
-Run 
+Run
   $0 -h
 to see the online help for this utility script.
 

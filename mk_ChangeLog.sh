@@ -1,7 +1,7 @@
 #! /bin/bash
 #
 # Original: https://raw.githubusercontent.com/indexzero/dotfiles/master/scripts/git-changelog-all
-# 
+#
 
 function tag_header () {
   TAG=$1

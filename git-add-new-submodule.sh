@@ -6,12 +6,12 @@ wd="$( pwd )";
 
 # How to obtain the default repository owner?
 # -------------------------------------------
-# 
+#
 # 1. extract the name of the owner of the repository your currently standing in
 # 2. if that doesn't work, get the locally configured github user as set up in the git repository you're standing in
 # 3. if that doesn't work, get the local system globally configured github user
 # 4. okay, nothing works. So you must be GerHobbelt on a fresh machine, right?
-# 
+#
 # Note: the RE is engineered to eat ANYTHING and only extract username from legal git r/w repository URLs (git@github.com:user/repo.git)
 # Note: this RE should work with BSD/OSX sed too:  http://stackoverflow.com/questions/12178924/os-x-sed-e-doesnt-accept-extended-regular-expressions
 getRepoOwner() {
@@ -42,14 +42,14 @@ wd=$( $utildir/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 
-# when the commandline starts with '-me' or '--me' then the repoOwner is NOT assumed to match 
+# when the commandline starts with '-me' or '--me' then the repoOwner is NOT assumed to match
 # the one of the repo you're currently standing in:
 if test "$1" == "-m" -o "$1" == "-me" -o "$1" == "--me" ; then
     shift
     repoOwner=$( getRepoOwner "whoami" );
 else
     repoOwner=$( getRepoOwner );
-fi  
+fi
 
 if test -z "$2" ; then
     cat <<EOT
@@ -62,7 +62,7 @@ Also adds the <username>-original remote reference to this submodule.
 When any fork names (github users) are listed, these are added as
 additional repository remotes.
 
-Instead of the <forks> you can specify a JSON file as obtained raw 
+Instead of the <forks> you can specify a JSON file as obtained raw
 from github by specifying its relative or absolute path: it is recognized
 as a path just as long as you make sure there's at least one slash '/'
 in it.
@@ -99,7 +99,7 @@ Example usage:
   metadata file found in ./network_meta are registered as git remotes as well): this allows
   us to easily sync/update our fork/clone from the original and other forks using a simple
   'git pull --all' command (or even easier: by running the git_pull_push.sh script).
-  
+
 EOT
     exit 0;
 fi
@@ -135,12 +135,12 @@ Registering as a git submodule:
 We assume this (git/github) URL points at the remote repository which will (a) be cloned,
 and (b) be referenced as the default 'git push' remote, so you'ld better have collaborator
 or owner rights there, buddy! ('git push' directly or via the 'git_pull_push.sh' script...)
-  
+
   repo = .......... ${repo}
   url = ........... ${giturl}
   owner = ......... ${githubowner}
   original author = ${author}
-  destination = ... ${dstdir} 
+  destination = ... ${dstdir}
 -------------------------------------------------------------------------------------------
 EOT
 
@@ -149,7 +149,7 @@ if test -d $dstdir ; then
 
 ### WARNING ###
 
-Destination directory [$dstdir] already exists. 
+Destination directory [$dstdir] already exists.
 Cannot clone a submodule into an existing directory!
 
 Instead, we'll register the listed 'original author' and further remotes ('forks')

@@ -9,21 +9,21 @@ cd ..
 
 shopt -s expand_aliases
 
-# check if the executable actually exists and does execute 
+# check if the executable actually exists and does execute
 # (not just looking for the 'x' bit here!)
 test_executable() {
   # http://stackoverflow.com/questions/592620/how-to-check-if-a-program-exists-from-a-bash-script
-  # 
+  #
   # 'command -v' does not actually execute the command but describes it instead, which is good
   # enough and a little safer at this point since we may be otherwise executing commands which
-  # we don't really want to execute; not everyone is happy to be nice when you pass it an 
-  # additional '--help' argument, e.g. 'command cat --help' on non-Linux. 
+  # we don't really want to execute; not everyone is happy to be nice when you pass it an
+  # additional '--help' argument, e.g. 'command cat --help' on non-Linux.
   command -v "$1" >/dev/null 2>&1
   return $?
 }
 
 # Helper
-# 
+#
 # arg1 arg2: arg1 is already registered executable, if it exists, arg2 is the new one to test
 # if we don't have a good arg1
 chain_test() {
@@ -236,18 +236,18 @@ EOT
   if ( cat tmp2.bak | grep CREATE > /dev/null ) ; then
     echo Database dump OK
   else
-    cat <<EOT                     
-    
+    cat <<EOT
+
     ============================================================================
-            ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR 
-            
+            ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
+
       The database dump has failed (produced no output at all)!
-      
+
       Please check your configuration and this script's commandline parameters.
-      
+
       The output file reported below will NOT contain a valid database dump!
     ============================================================================
-      
+
 EOT
   fi
   #

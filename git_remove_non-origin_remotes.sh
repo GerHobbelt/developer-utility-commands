@@ -64,7 +64,7 @@ $0 [args]
 
 remove all non-origin remotes from all git submodule repositories in the current path.
 
-Note / Special command option: 
+Note / Special command option:
 
     Specify the '-c' argument to have all remotes removed for the current repository only!
 

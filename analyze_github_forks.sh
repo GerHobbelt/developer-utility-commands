@@ -1,8 +1,8 @@
 #! /bin/bash
 #
-# check the remotes and see if github can help us discover who of them did actually any work on SlickGrid (graph view in github is 
+# check the remotes and see if github can help us discover who of them did actually any work on SlickGrid (graph view in github is
 # NIL as there are too many forks; the key here is to discover which forks actually contain any new work at all).
-# 
+#
 # To protect myself from leaking my credentials into the repo (that would a security goof of the first order!) parameter 1
 # of this script should be the user:pass as required by github basic auth / curl.
 #
@@ -14,12 +14,12 @@ wd="$( pwd )";
 
 # How to obtain the default repository owner?
 # -------------------------------------------
-# 
+#
 # 1. extract the name of the owner of the repository your currently standing in
 # 2. if that doesn't work, get the locally configured github user as set up in the git repository you're standing in
 # 3. if that doesn't work, get the local system globally configured github user
 # 4. okay, nothing works. So you must be GerHobbelt on a fresh machine, right?
-# 
+#
 # Note: the RE is engineered to eat ANYTHING and only extract username from legal git r/w repository URLs (git@github.com:user/repo.git)
 # Note: this RE should work with BSD/OSX sed too:  http://stackoverflow.com/questions/12178924/os-x-sed-e-doesnt-accept-extended-regular-expressions
 getRepoOwner() {
@@ -88,11 +88,11 @@ EOT
       repoOwner="$OPTARG"
       ;;
 
-    f )                     
+    f )
       echo 'fast mode enabled!'
       fastMode=1
       ;;
-  
+
     * )
       echo "--- checkout git submodules to master / branch ---"
       ;;
@@ -108,7 +108,7 @@ fi
 cat <<EOT
 -------------------------------------------------------------------------------------------
 Going to run this script with these github credentials:
-  
+
   user =      $repoOwner
 -------------------------------------------------------------------------------------------
 EOT
@@ -129,17 +129,17 @@ echo "Find out which clones have no personal work, i.e. are fruitless, and remov
 # *some* commands cannot execute safely on Windows as even in BASH there we may run out
 # of commandline space, so we take a slightly round-about way sometimes in here in order
 # to prevent (very) large sets of commandline arguments to break this script!
-# 
+#
 # Hence we use a few temporary files, which collect remotes, etc.
 
 # collect the set of registered remotes:
 #
 # Note: use `sed /expr/d` instead of multiple `grep -v` invocations: less piping = faster
-# 
+#
 # do not concern ourselves with the 'origin' remote, nor with any remotes titled XYZ-original
 # nor the remote owned by Yours Truly, who-ever you are!  ;-)
-# 
-# Do NOT SORT the remotes: "first come first serve" applies to the historic order 
+#
+# Do NOT SORT the remotes: "first come first serve" applies to the historic order
 # in which these remotes were added!
 git remote -v | grep -e " (fetch)" | sed -e 's/[ \t].*//' | sed -e '/origin/d' -e "/$repoOwner/d" > ___42_all_remotes___
 
@@ -161,7 +161,7 @@ echo origin       >> ___42_keep_remotes__
 # for f in $( cat ___42_all_remotes___ ) ; do
 #   cnt1=$( git rev-list --all -g  --author=$f --count )
 #   cnt2=$( git rev-list --all -g  --committer=$f --count )
-#   num=$(($cnt1 + $cnt2)) 
+#   num=$(($cnt1 + $cnt2))
 #   echo "User: $f   :: counts: $cnt1 + $cnt2    = $num  (>= 1 means KEEP)"
 #
 #   # Keep any remote which has committed/authored any work:
@@ -192,10 +192,10 @@ for f in $( cat ___42_check_remotes_1__ ) ; do
   # check for each of the user's branches if the head commit exists in any other branches
   # which are not his/hers: if the commit does not, we know there's custom work
   # done in that branch.
-  # 
+  #
   # This tackles the hairy problem of github 'usernames' which represent *groups*
   # and hence do never show up as committer or author of any commit!
-  
+
   keep=0
   inspect_more=0
   # make sure the user regex doesn't start with a dash '-', which would confuse grep:
@@ -211,17 +211,17 @@ for f in $( cat ___42_check_remotes_1__ ) ; do
       inspect_more=1
     fi
   done
-  
+
   # when *either* there were no branches in the remote (this happens for
   # *empty* repositories -- we've encountered such *forks*, yes!) *or*
   # _all_ branch heads were found to exist in others' repositories as well,
-  # *then* do we consider to discard the given remote: we MAY be throwing 
+  # *then* do we consider to discard the given remote: we MAY be throwing
   # away a parent repo which itself was a fork of the original, but alas:
-  # when it doesn't contain any original work by itself any more, then 
-  # a fork of this fork is good enough to keep; we can always re-add the 
+  # when it doesn't contain any original work by itself any more, then
+  # a fork of this fork is good enough to keep; we can always re-add the
   # repo remote at some later point in time and rerun this analysis: maybe
   # they have something new and unique then!
-  # 
+  #
   # However, if the remote does have some branches that didn't check out
   # as 'unique' yet, we need to do a little more work before we finally can
   # decide to discard the remote entirely!            (inspect_more > 0)
@@ -238,18 +238,18 @@ done
 
 
 # First come, first serve: the first remote we find to have a branch head
-# which is UNIQUE to the entire collection of currently known 
-# 'to-be-discarded' remotes is the one who is considered 'owner' of that 
+# which is UNIQUE to the entire collection of currently known
+# 'to-be-discarded' remotes is the one who is considered 'owner' of that
 # work and thus will stay around after all!
 for f in $( cat ___42_check_remotes_2__ ) ; do
   # check for each of the user's branches if the head commit exists in any branches
   # which belong to currently known-to-be-kept remotes: if the commit does not, we know there's custom work
-  # done in this branch: "first come, first serve" means the user $f is now 
+  # done in this branch: "first come, first serve" means the user $f is now
   # considered the owner of this work!
-  # 
+  #
   # This tackles the hairy problem of github 'usernames' which represent *groups*
   # and hence do never show up as committer or author of any commit!
-  
+
   keep=0
   # make sure the user regex doesn't start with a dash '-', which would confuse grep:
   for b in $( git branch -a | grep -e "\/$f\/" ) ; do
@@ -259,7 +259,7 @@ for f in $( cat ___42_check_remotes_2__ ) ; do
     if test $dups -eq 0 ; then
       keep=1
       # immediately add this remote to the known-to-keep list so that we will only
-      # keep one remote of many when all of that set are currently in the 
+      # keep one remote of many when all of that set are currently in the
       # 'to-be-removed' collection: by adding the current remote to the
       # 'known-to-keep' collection as soon as possible, the next remote(s)
       # won't get added as well for the same reasons: they will be added when
@@ -267,7 +267,7 @@ for f in $( cat ___42_check_remotes_2__ ) ; do
       break
     fi
   done
-  
+
   if test $keep -gt 0 ; then
     echo "$f"     >> ___42_keep_remotes__
   else

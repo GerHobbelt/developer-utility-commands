@@ -2,7 +2,7 @@
 #
 # generate a GNU make makefile which will sync/update all the git submodules to the current repository.
 # Such a makefile can speed up the sync process as multiple git pull instances can be executed
-# in parallel in an easily managed fashion by running `make -j N` where N is the number of 
+# in parallel in an easily managed fashion by running `make -j N` where N is the number of
 # threads.
 
 wd="$( pwd )";
