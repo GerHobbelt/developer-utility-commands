@@ -82,10 +82,10 @@ elif [ "$GPP_PROCESS_SUBMODULES" = "L1" ] ; then
   # Assumption: sub-sub-modules are all located more than 3 directory levels deep, not just two as you'd naively expect:
   # this is due to our directory structure and third-party repo's often parking third-party submodules in 
   # third_party/reponame/ directories or alike.
-  GPP_FIND_DEPTH_LIMITER=-maxdepth 3
+  GPP_FIND_DEPTH_LIMITER="-maxdepth 3"
   GPP_SUBMOD_RECURSIVE_OPT=
 else
-  GPP_FIND_DEPTH_LIMITER=-maxdepth 1
+  GPP_FIND_DEPTH_LIMITER="-maxdepth 1"
   GPP_SUBMOD_RECURSIVE_OPT=
 fi
 
