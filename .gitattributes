@@ -13,6 +13,9 @@
 *.xml           text eol=lf
 *.md            text eol=lf
 *.markdown      text eol=lf
+*.awk           text eol=lf
+
+LICENSE         text eol=lf
 
 *.pdf			binary
 *.psd			binary
