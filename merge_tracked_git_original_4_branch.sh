@@ -69,22 +69,29 @@ else
       echo "bc=$bc"
 
       # EXTRA: nuke all obnoxious dependabot + Snyk + ICU branches. URGH!
-      for f in $( git branch -r | grep dependabot ) ; do git branch -dr $f ; done
-      for f in $( git branch -r | grep snyk-fix ) ; do git branch -dr $f ; done
-      for f in $( git branch -r | grep snyk-upgrade ) ; do git branch -dr $f ; done
-      for f in $( git branch -r | grep perfdata ) ; do git branch -dr $f ; done
+      #
+      # speed up Linux git by caching the 'git branch -r' output and only processing that
+      # list instead of the git reality itself:
+      git branch -r > /tmp/git-branch-list.tmp
+      cat /tmp/git-branch-list.tmp | grep dependabot    > /tmp/git-branch-to-be-nuked-list.tmp
+      cat /tmp/git-branch-list.tmp | grep snyk-fix     >> /tmp/git-branch-to-be-nuked-list.tmp
+      cat /tmp/git-branch-list.tmp | grep snyk-upgrade >> /tmp/git-branch-to-be-nuked-list.tmp
+      cat /tmp/git-branch-list.tmp | grep perfdata     >> /tmp/git-branch-to-be-nuked-list.tmp
+      for f in $( cat /tmp/git-branch-to-be-nuked-list.tmp ) ; do git branch -dr $f ; done
+
+      cat /tmp/git-branch-list.tmp | grep -v dependabot | grep -v snyk-fix | grep -v snyk-upgrade | grep -v perfdata > /tmp/git-branch-cleaned-list.tmp
 
       git gc --auto --prune
 
       # now get the 'origin' + 'original' remotes:
-      rmts=$( git branch -r | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
+      rmts=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
       echo "rmts=$rmts"
       if test -z "$rmts" ; then
         break
       fi
 
       # also merge remote originals which have moved from 'master' to 'main', while we haven't:
-      rmts2=$( git branch -r | grep origin | grep -v -e '->' | grep -e "/main\$" );
+      rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/main\$" );
       if test "$bns" = "master" ; then
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
@@ -94,11 +101,11 @@ else
 
       # also merge remote originals/forks mentioned on the command line:
       if test -n "$2" ; then
-        rmts2=$( git branch -r | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
+        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
 	elif [[ "$2" == *"/"* ]]; then
-          rmts2=$( git branch -r | grep "$2" | grep -v -e '->' );
+          rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' );
           if test -n "$rmts2" ; then
             rmts="$rmts $rmts2"
 	  fi
