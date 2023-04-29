@@ -21,6 +21,9 @@ echo "# Collecting all git branches (include remotes' ones) in $TMP_FILE ..."
 
 # https://stackoverflow.com/questions/5188320/how-can-i-get-a-list-of-git-branches-ordered-by-most-recent-commit
 git branch --sort=-committerdate --all -v --format='%(committerdate:short) %(refname:short)' > $TMP_FILE
+#cat $TMP_FILE
+#echo "======================================================"
+
 
 echo "# Filtering original remotes + most recently active branches into $TMP_FILE2 ..."
 
