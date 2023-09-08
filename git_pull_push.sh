@@ -4,6 +4,8 @@ wd="$( pwd )";
 
 pushd $(dirname $0)                                                                                     2> /dev/null  > /dev/null
 
+UTILDIR=$( pwd )
+
 # go to root of project
 cd ..
 
@@ -72,7 +74,7 @@ collectImportantRemotes() {
 
 
 
-while getopts ":RcCfFqQpPwWlLgGsZx01h" opt; do
+while getopts ":RcfqpwlLgGszx01h" opt; do
 #echo opt+arg = "$opt$OPTARG"
 
 if [ "$GPP_PROCESS_SUBMODULES" = "ALL" ] ; then
@@ -175,46 +177,6 @@ f )
   fi
   ;;
 
-F )
-  echo "--- pull/push the git repo and its immediate submodules ---"
-  for (( i=OPTIND; i > 1; i-- )) do
-    shift
-  done
-  #echo args: $@
-  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
-  for f in $( git submodule foreach --quiet pwd ) ; do
-    pushd .                                                               2> /dev/null  > /dev/null
-    echo "### processing PATH/SUBMODULE: $f"
-    cd $f
-    #echo $@
-    $@
-    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-    git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
-    TRACKING_URL=$( git config --get remote.origin.url )
-    # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-    if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-      git push --all --follow-tags                                          2>&1
-      git push --tags                                                       2>&1
-    else
-      echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-    fi
-    popd                                                                  2> /dev/null  > /dev/null
-  done
-  fi
-  echo "### processing MAIN REPO: $wd"
-  $@
-  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-  TRACKING_URL=$( git config --get remote.origin.url )
-  # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-  if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-    git push --all --follow-tags                                            2>&1
-    git push --tags                                                         2>&1
-  else
-    echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-  fi
-  ;;
-
 q )
   echo "--- pull/push the git submodules only ---"
   for (( i=OPTIND; i > 1; i-- )) do
@@ -223,30 +185,6 @@ q )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-    pushd .                                                               2> /dev/null  > /dev/null
-    echo "### processing PATH/SUBMODULE: $f"
-    cd $f
-    #echo $@
-    $@
-    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
-    popd                                                                  2> /dev/null  > /dev/null
-  done
-  else
-    echo "--- Nothing to do ---"
-  fi
-  ;;
-
-Q )
-  echo "--- pull/push the git submodules only ---"
-  for (( i=OPTIND; i > 1; i-- )) do
-    shift
-  done
-  #echo args: $@
-  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
-  for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -287,30 +225,6 @@ p )
   git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   ;;
 
-P )
-  echo "--- pull the git repo and its immediate submodules ---"
-  for (( i=OPTIND; i > 1; i-- )) do
-    shift
-  done
-  #echo args: $@
-  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
-  for f in $( git submodule foreach --quiet pwd ) ; do
-    pushd .                                                               2> /dev/null  > /dev/null
-    echo "### processing PATH/SUBMODULE: $f"
-    cd $f
-    #echo $@
-    $@
-    git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-    git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-    popd                                                                  2> /dev/null  > /dev/null
-  done
-  fi
-  echo "### processing MAIN REPO: $wd"
-  $@
-  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-  ;;
-
 w )
   echo "--- push the git repo and its submodules ---"
   for (( i=OPTIND; i > 1; i-- )) do
@@ -319,30 +233,6 @@ w )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-    pushd .                                                               2> /dev/null  > /dev/null
-    echo "### processing PATH/SUBMODULE: $f"
-    cd $f
-    #echo $@
-    $@
-    git push --all --follow-tags                                          2>&1
-    git push --tags                                                       2>&1
-    popd                                                                  2> /dev/null  > /dev/null
-  done
-  fi
-  echo "### processing MAIN REPO: $wd"
-  $@
-  git push --all --follow-tags                                            2>&1
-  git push --tags                                                         2>&1
-  ;;
-
-W )
-  echo "--- push the git repo and its immediate submodules ---"
-  for (( i=OPTIND; i > 1; i-- )) do
-    shift
-  done
-  #echo args: $@
-  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
-  for f in $( git submodule foreach --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
@@ -554,72 +444,28 @@ c )
   git remote prune origin
   ;;
 
-C )
-  echo "--- clean up the immediate git submodules remote references etc. ---"
+z )
+  echo "--- clean up the git repo inaccessible remote references etc. ---"
   for (( i=OPTIND; i > 1; i-- )) do
     shift
   done
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
-  for f in $( git submodule foreach --quiet pwd ) ; do
+  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
     #echo $@
     $@
-    # http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
-    # http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
-    git gc
-    git fsck --full --unreachable --strict
-    git reflog expire --expire=0 --all
-    git reflog expire --expire-unreachable=now --all
-    git gc --prune=now
-    git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-    git repack -Adf
-    #git update-ref
-    git reflog expire --expire=now --expire-unreachable=now --all
-    git gc --aggressive --prune=all
-    git remote update --prune
-    git remote prune origin
+
+	$UTILDIR/remove-broken-inaccessible-remotes.sh
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
   $@
-  git gc
-  git fsck --full --unreachable --strict
-  git reflog expire --expire=0 --all
-  git reflog expire --expire-unreachable=now --all
-  git gc --prune=now
-  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-  git repack -Adf
-  #git update-ref
-  git reflog expire --expire=now --expire-unreachable=now --all
-  git gc --aggressive --prune=all
-  git remote update --prune
-  git remote prune origin
-  ;;
 
-Z )
-  echo "--- clean up the immediate git repository's remote references etc. ---"
-  for (( i=OPTIND; i > 1; i-- )) do
-    shift
-  done
-  #echo args: $@
-  echo "### processing MAIN REPO: $wd"
-  $@
-  git gc
-  git fsck --full --unreachable --strict
-  git reflog expire --expire=0 --all
-  git reflog expire --expire-unreachable=now --all
-  git gc --prune=now
-  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-  git repack -Adf
-  #git update-ref
-  git reflog expire --expire=now --expire-unreachable=now --all
-  git gc --aggressive --prune=all
-  git remote update --prune
-  git remote prune origin
+  $UTILDIR/remove-broken-inaccessible-remotes.sh
   ;;
 
 s )
@@ -656,37 +502,31 @@ s )
 
 * )
   cat <<EOT
+
 $0 [commands+options] [args]
 
 pull & push all git repositories in the current path.
 
 Commands:
 
--l       : 'lazy': let git (1.8+) take care of pushing all submodules' changes
+-l       : 'lazy': let git (1.8+) take care of pushing all submodules' changes 
            which are relevant: this is your One Stop Push Shop.
            (Also performs a 'pull --all' before pushing.)
 -L       : 'Extra Lazy': only pull/push the originating remotes, ignore the others.
            Originating remotes have your name in them or 'orig' (case INsensitive).
            NOTE: this command pulls/pushes the main repo FIRST, the submodules AFTER.
 -f       : only pull/push this git repository and the git submodules.
--F       : only pull/push this git repository and the top level git submodules.
 -q       : pull/push all the git submodules ONLY (not the main project).
--Q       : pull/push all the top level git submodules ONLY (not the main project).
 -p       : only PULL this git repository and the git submodules.
--P       : only PULL this git repository and the top level git submodules.
 -g       : 'lazy get': let git (1.8+) take care of pulling all submodules' changes
            which are relevant: this is your One Stop Pull Shop.
 -G       : 'Extra Lazy Get': only pull the originating remotes, ignore the others.
            Originating remotes have your name in them or 'orig' (case INsensitive).
            NOTE: this command pulls the main repo FIRST, the submodules AFTER.
 -w       : only PUSH this git repository and the git submodules.
--W       : only PUSH this git repository and the top level git submodules.
 -c       : cleanup git repositories: run this when you get
            error 'does not point to valid object'
--C       : cleanup top level git repositories + first-level submodules:
-           run this when you get error 'does not point to valid object'
--Z       : cleanup top level git repository only:
-           run this when you get error 'does not point to valid object'
+-z       : cleanup: remove the git repo's inaccessible remote references.
 -s       : setup/reset all upstream (remote:origin) references for each
            submodule and push the local repo. This one ensures a 'git push --all'
            will succeed for each local branch the next time you run that
@@ -704,18 +544,34 @@ Options:
 
 -0       : DO NOT apply the next command(s) to any submodules, but only to the
            current (base) repository.
+
 -1       : apply the next command(s) to first-level submodules, plus the
            current (base) repository.
 
+NOTES:
 
-When further commandline [args] are specified, those are treated as a command
-and executed for each directory containing a git repository. E.g.:
+Using these, old-skool 'gpp -P' is now available as
+  $0 -1 -p
+i.e.
+  $0 -1p
+These level options are more powerful than the old-skool capital command
+options though as now there's also
+  $0 -0p
+which applies the pull process to the current repo ONLY. And this goes for
+all the above, except the -g and -l/-L 'lazy' commands.
 
-  $0 git commit -a
+NOTES:
+
+When further non-option commandline [args] are specified, those are treated
+as a command and executed for each directory containing a git repository.
+E.g.:
+
+  $0 -x git commit -a
 
 will execute a 'git commit -a' for every git repository.
 
 WARNING / NOTE:
+
 Quoted extra command arguments don't get processed properly yet (we use bash's \$\@)
 so you're best served by coding your command(s) in a temporary bash shell script,
 then pass the ABSOLUTE PATH to that shell script as the command to execute. E.g.:
