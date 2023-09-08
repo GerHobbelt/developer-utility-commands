@@ -27,26 +27,38 @@ echo "--------------------------------------------------"
 echo ":: Going to remove these inaccessible git remotes:"
 echo ".................................................."
 
-cut --delimiter=/ -s --output-delimiter=:: -f 4 $TMP_FILE.2 | grep -v origin | tee $TMP_FILE.3
+cat $TMP_FILE.2 | grep -v origin | sed -e "s/fatal: Authentication failed for '//" -e "s/[\/]\?'//" | tee $TMP_FILE.3
 
 if test $( cat $TMP_FILE.3 | wc -l ) == "0" ; then
 	echo ""
 	echo "    (nothing to delete)"
 	echo ""
 else
+	echo ""
 	for f in $( cat $TMP_FILE.3 ) ; do
-		git remote rm -- "$f"
+		for r in $( git remote -v | grep -e "$f" | cut -f 1 | uniq ) ; do
+			echo "DELETING REMOTE:  '$r'"
+			git remote rm   $r
+		done
 	done
 fi
 
-cut --delimiter=/ -s --output-delimiter=:: -f 4 $TMP_FILE.2 | grep origin | tee $TMP_FILE.4
+cat $TMP_FILE.2 | grep origin | sed -e "s/fatal: Authentication failed for '//" -e "s/[\/]\?'\$//" > $TMP_FILE.4
 
 if test $( cat $TMP_FILE.4 | wc -l ) != "0" ; then
 	echo ""
 	echo "###############################################################################################################"
 	echo "## WARNING: these ORIGINAL remotes appear to be inaccessible! (These have NOT been removed for your safety!) ::"
 	echo ""
-	cat cat $TMP_FILE.4
+	cat $TMP_FILE.4
+	echo ""
+	echo "  i.e. these registered remotes' identifiers:"
+	echo ""
+	for f in $( cat $TMP_FILE.4 ) ; do
+		for r in $( git remote -v | grep -e "$f" | cut -f 1 | uniq ) ; do
+			echo "REMOTE:  '$r'"
+		done
+	done
 fi
 
 echo ""
