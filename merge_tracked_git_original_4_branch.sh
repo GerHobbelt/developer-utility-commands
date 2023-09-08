@@ -64,9 +64,9 @@ else
         break
       fi
 
-      echo "bn=$bn"
-      echo "bns=$bns"
-      echo "bc=$bc"
+      echo "current branch name.......................... $bn"
+      echo "current branches............................. $bns"
+      echo "current commit............................... $bc"
 
       # EXTRA: nuke all obnoxious dependabot + Snyk + ICU branches. URGH!
       #
@@ -85,7 +85,7 @@ else
 
       # now get the 'origin' + 'original' remotes:
       rmts=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
-      echo "rmts=$rmts"
+      echo "original remotes............................. $rmts"
       if test -z "$rmts" ; then
         break
       fi
@@ -97,22 +97,33 @@ else
           rmts="$rmts $rmts2"
         fi
       fi
-      echo "rmts=$rmts"
+      echo "original remotes (including master-->main)... $rmts"
 
       # also merge remote originals/forks mentioned on the command line:
-      if test -n "$2" ; then
+      while test -n "$2" ; do
+        echo "checking argv-listed remote: $2"
         rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
+        echo "--> remotes: $rmts2"
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
-	elif [[ "$2" == *"/"* ]]; then
+        fi
+
+        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' | grep -e "/main\$" );
+        echo "--> remotes(main): $rmts2"
+        if test -n "$rmts2" ; then
+          rmts="$rmts $rmts2"
+        fi
+
+        if [[ "$2" == *"/"* ]]; then
           rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' );
+          echo "--> remotes */*: $rmts2"
           if test -n "$rmts2" ; then
             rmts="$rmts $rmts2"
-	  fi
+          fi
         fi
-        echo "rmts=$rmts"
+        echo "original remotes (including argv list)....... $rmts"
         shift
-      fi
+      done
 
       for f in $rmts ; do
         echo "TRACKED BRANCH=$f"
