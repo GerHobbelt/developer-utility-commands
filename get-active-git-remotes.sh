@@ -8,7 +8,7 @@
 #
 # Optional argument:
 #
-#    --show-inactive-old-ones  : list remotes that haven't seen any active in the last 4-5 years
+#    --show-inactive-old-ones  : list remotes that haven't seen any action in the last 4-5 years
 #
 
 TMP_FILE=$(mktemp -q /tmp/all-remotes.XXXXXX)
