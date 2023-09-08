@@ -60,21 +60,21 @@ getRepoOwner() {
 }
 
 collectImportantRemotes() {
-	(
-	  	git remote -v | grep -i "${grepExpr}" | cut -f 1
-	  	# also collect all remotes already are known to have done *something* in the last 2 months.
-	  	# This will thus 'ignore' all 'inactive' remotes.
-	        #
-	        # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
-	        # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
-	        # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch.
-	  	git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }'
-	) | sort | uniq > __git_lazy_remotes__
+    (
+        git remote -v | grep -i "${grepExpr}" | cut -f 1
+        # also collect all remotes already are known to have done *something* in the last 2 months.
+        # This will thus 'ignore' all 'inactive' remotes.
+            #
+            # The one-line gawk script is a little rough, but does extract all ref/remotes/<name>/xyz branches,
+            # possibly with a trailing comma (as produced by `git log %D`), but we don't care about the branch
+            # names anyway, so we're fine with that: the gawk script extracts all remote names without a hitch.
+        git log --all --date-order --pretty=oneline --decorate=full --since="2 weeks ago" --first-parent --show-pulls --format="%D" | gawk '/\w/ { for (i = 1; i <= NF; i++) { rec = $i; if ( 0 != index(rec, "refs/remotes/") ) { remo = gensub(/^.*\/remotes\/([^\/]+)\/.*$/, "\\1", 1, rec); if ( length(remo) > 0 ) { printf("%s\n", remo); } } } }'
+    ) | sort | uniq > __git_lazy_remotes__
 }
 
 
 
-while getopts ":RcfqpwlLgGszx01h" opt; do
+while getopts ":RcfqpwlLgGszxA01h" opt; do
 #echo opt+arg = "$opt$OPTARG"
 
 if [ "$GPP_PROCESS_SUBMODULES" = "ALL" ] ; then
@@ -91,8 +91,41 @@ else
   GPP_SUBMOD_RECURSIVE_OPT=
 fi
 
+echo "@@@@ = $@"
+echo "opt = $opt"
+echo "OPTARG = $OPTARG"
+echo "OPTIND = $OPTIND"
+# https://stackoverflow.com/questions/14049057/bash-expand-variable-in-a-variable
+# https://reactgo.com/bash-get-first-character-of-string/
+EXECIND=${OPTIND}
+OPTFLAGARG=${!OPTIND}
+echo "OPTFLAGARG = $OPTFLAGARG"
+OPTFLAG=${!OPTIND:0:1}
+echo "OPTFLAG = $OPTFLAG"
+if [ ${OPTFLAG} != '-' ] ; then
+  echo "EXEC ARGV!"
+  ARGV_SET=${@:$OPTIND}
+  echo "ARGV_SET = $ARGV_SET"
+else
+  echo "Seek EXEC surplus..............."
+  OFFSET=1
+  ARGV_SET=${@:((OPTIND+OFFSET))}
+  OPTFLAG=${ARGV_SET:0:1}
+  echo "OFFSET = $OFFSET"
+  echo "ARGV_SET = $ARGV_SET"
+  echo "OPTFLAG = $OPTFLAG"
+  while [ "$OPTFLAG" == "-" ] ; do
+    OFFSET=$((OFFSET+1))
+    ARGV_SET=${@:((OPTIND+OFFSET))}
+    OPTFLAG=${ARGV_SET:0:1}
+    echo "OFFSET = $OFFSET"
+    echo "ARGV_SET = $ARGV_SET"
+    echo "OPTFLAG = $OPTFLAG"
+  done
+fi
+
 case "$opt$OPTARG" in
-"?" )
+A )
   echo "--- pull/push every git repo in this directory tree ---"
   #echo full - args: $@
   for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' ) ; do
@@ -100,8 +133,8 @@ case "$opt$OPTARG" in
     f=$( dirname "$f" )
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     TRACKING_URL=$( git config --get remote.origin.url )
@@ -121,20 +154,20 @@ x )
   for (( i=OPTIND; i > 1; i-- )) do
     shift
   done
-  echo command: $@
+  echo "command: ${ARGV_SET}"
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    echo $@
-    $@
+    echo "${ARGV_SET}"
+    ${ARGV_SET}
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  echo $@
-  $@
+  echo "${ARGV_SET}"
+  ${ARGV_SET}
   ;;
 
 f )
@@ -148,8 +181,8 @@ f )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
     TRACKING_URL=$( git config --get remote.origin.url )
@@ -164,7 +197,8 @@ f )
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
   TRACKING_URL=$( git config --get remote.origin.url )
@@ -188,8 +222,8 @@ q )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     git push --all --follow-tags                                          2>&1
@@ -212,15 +246,16 @@ p )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   ;;
@@ -236,15 +271,16 @@ w )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git push --all --follow-tags                                          2>&1
     git push --tags                                                       2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
   ;;
@@ -263,14 +299,15 @@ R )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### RESET-ting PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git reset --hard                                                      2>&1
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### RESET-ing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git reset --hard                                                        2>&1
   ;;
 
@@ -279,8 +316,8 @@ l )
   for (( i=OPTIND; i > 1; i-- )) do
     shift
   done
-  #echo $@
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
@@ -306,16 +343,17 @@ L )
   grepExpr="orig\|${repoOwner}"
 
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
 
   collectImportantRemotes
   #echo "Remotes:"
   #cat __git_lazy_remotes__
 
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        				2>&1
-  git push --all --follow-tags                  							2>&1
-  git push --all                            								2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
+  git push --all --follow-tags                                              2>&1
+  git push --all                                                            2>&1
   rm -f __git_lazy_remotes__
 
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
@@ -323,8 +361,8 @@ L )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
 
     collectImportantRemotes
     #echo "Remotes @ $f:"
@@ -332,8 +370,8 @@ L )
 
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-    git push --all --follow-tags                                          				2>&1
-    git push --tags                                                       				2>&1
+    git push --all --follow-tags                                                        2>&1
+    git push --tags                                                                     2>&1
     rm -f __git_lazy_remotes__
     popd                                                                  2> /dev/null  > /dev/null
   done
@@ -345,8 +383,8 @@ g )
   for (( i=OPTIND; i > 1; i-- )) do
     shift
   done
-  #echo $@
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags --recurse-submodules=on-demand                   2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only --recurse-submodules=on-demand                       2>&1
@@ -367,14 +405,15 @@ G )
   grepExpr="orig\|${repoOwner}"
 
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
 
   collectImportantRemotes
   #echo "Remotes:"
   #cat __git_lazy_remotes__
 
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
-  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                        		        	2>&1
+  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                            2>&1
   rm -f __git_lazy_remotes__
 
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
@@ -382,8 +421,8 @@ G )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
 
     collectImportantRemotes
     #echo "Remotes @ $f:"
@@ -408,8 +447,8 @@ c )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     # http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
     # http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
     # https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
@@ -429,7 +468,8 @@ c )
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git gc
   git fsck --full --unreachable --strict
   git reflog expire --expire=0 --all
@@ -455,15 +495,16 @@ z )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
 
-	$UTILDIR/remove-broken-inaccessible-remotes.sh
+    $UTILDIR/remove-broken-inaccessible-remotes.sh
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
 
   $UTILDIR/remove-broken-inaccessible-remotes.sh
   ;;
@@ -479,14 +520,15 @@ s )
     pushd .                                                               2> /dev/null  > /dev/null
     echo "### processing PATH/SUBMODULE: $f"
     cd $f
-    #echo $@
-    $@
+    #echo "extra command: ${ARGV_SET}"
+    ${ARGV_SET}
     git push -u origin --all
     popd                                                                  2> /dev/null  > /dev/null
   done
   fi
   echo "### processing MAIN REPO: $wd"
-  $@
+  #echo "extra command: ${ARGV_SET}"
+  ${ARGV_SET}
   git push -u origin --all
   ;;
 
@@ -517,6 +559,7 @@ Commands:
            NOTE: this command pulls/pushes the main repo FIRST, the submodules AFTER.
 -f       : only pull/push this git repository and the git submodules.
 -q       : pull/push all the git submodules ONLY (not the main project).
+-A       : pull/push every git repo we can find in the current directory tree
 -p       : only PULL this git repository and the git submodules.
 -g       : 'lazy get': let git (1.8+) take care of pulling all submodules' changes
            which are relevant: this is your One Stop Pull Shop.
