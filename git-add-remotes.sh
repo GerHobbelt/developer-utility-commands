@@ -152,9 +152,9 @@ EOT
         shift
     done
 
-    git pull --all
-    git fetch --tags
-    #git remote -v
+    #git pull --all
+    #git fetch --tags
+    ##git remote -v
 fi
 
 popd                                                                                                    2> /dev/null  > /dev/null
