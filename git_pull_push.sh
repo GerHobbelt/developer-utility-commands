@@ -91,36 +91,22 @@ else
   GPP_SUBMOD_RECURSIVE_OPT=
 fi
 
-echo "@@@@ = $@"
-echo "opt = $opt"
-echo "OPTARG = $OPTARG"
-echo "OPTIND = $OPTIND"
 # https://stackoverflow.com/questions/14049057/bash-expand-variable-in-a-variable
 # https://reactgo.com/bash-get-first-character-of-string/
 EXECIND=${OPTIND}
 OPTFLAGARG=${!OPTIND}
-echo "OPTFLAGARG = $OPTFLAGARG"
 OPTFLAG=${!OPTIND:0:1}
-echo "OPTFLAG = $OPTFLAG"
 if [ "${OPTFLAG}" != "-" ] ; then
-  echo "EXEC ARGV!"
   ARGV_SET=${@:$OPTIND}
-  echo "ARGV_SET = $ARGV_SET"
 else
-  echo "Seek EXEC surplus..............."
+  #echo "Seek EXEC surplus..............."
   OFFSET=1
   ARGV_SET=${@:((OPTIND+OFFSET))}
   OPTFLAG=${ARGV_SET:0:1}
-  echo "OFFSET = $OFFSET"
-  echo "ARGV_SET = $ARGV_SET"
-  echo "OPTFLAG = $OPTFLAG"
   while [ "$OPTFLAG" == "-" ] ; do
     OFFSET=$((OFFSET+1))
     ARGV_SET=${@:((OPTIND+OFFSET))}
     OPTFLAG=${ARGV_SET:0:1}
-    echo "OFFSET = $OFFSET"
-    echo "ARGV_SET = $ARGV_SET"
-    echo "OPTFLAG = $OPTFLAG"
   done
 fi
 
@@ -155,9 +141,7 @@ x )
     shift
   done
   if [ "${ARGV_SET}" == "" ] ; then
-    echo "ARGV_SET is empty."
     ARGV_SET="echo (no command given)"
-    echo "ARGV_SET = $ARGV_SET"
   fi
   echo "command: ${ARGV_SET}"
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
