@@ -102,7 +102,7 @@ OPTFLAGARG=${!OPTIND}
 echo "OPTFLAGARG = $OPTFLAGARG"
 OPTFLAG=${!OPTIND:0:1}
 echo "OPTFLAG = $OPTFLAG"
-if [ ${OPTFLAG} != '-' ] ; then
+if [ "${OPTFLAG}" != "-" ] ; then
   echo "EXEC ARGV!"
   ARGV_SET=${@:$OPTIND}
   echo "ARGV_SET = $ARGV_SET"
@@ -154,6 +154,11 @@ x )
   for (( i=OPTIND; i > 1; i-- )) do
     shift
   done
+  if [ "${ARGV_SET}" == "" ] ; then
+    echo "ARGV_SET is empty."
+    ARGV_SET="echo (no command given)"
+    echo "ARGV_SET = $ARGV_SET"
+  fi
   echo "command: ${ARGV_SET}"
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
   for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
