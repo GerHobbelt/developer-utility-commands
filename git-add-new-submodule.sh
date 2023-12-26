@@ -191,8 +191,11 @@ if test -d "$dstdir" && test -f "$dstdir/.git" ; then
         fi
     fi
 
-    git pull --all
-    git fetch --tags
+    #git pull --all
+    #git fetch --tags
+	
+	$utildir/git_pull_push.sh -0 -p
+
 else
     cat <<EOT
 

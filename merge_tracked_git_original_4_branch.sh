@@ -68,6 +68,11 @@ else
       echo "current branches............................. $bns"
       echo "current commit............................... $bc"
 
+      # fix $bns for those (rare) repos which have 'master' as both *label* and *branch* name. *sigh* (libeigen is an example?)
+	  bns=$( echo "$bns" | sed -e 's/.*\///' )
+
+      echo "branch name we'll be looking for ............ $bns"
+
       # EXTRA: nuke all obnoxious dependabot + Snyk + ICU branches. URGH!
       #
       # speed up Linux git by caching the 'git branch -r' output and only processing that
