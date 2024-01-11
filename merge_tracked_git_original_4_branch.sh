@@ -36,6 +36,19 @@ else
     rv=4;
     case "$opt$OPTARG" in
     m )
+	  #STEPCOUNT=${OPTIND}
+	  STEPCOUNT=${!OPTIND}
+	  #echo "STEPCOUNT=$STEPCOUNT"
+      if [ -z "$STEPCOUNT" ]; then
+  	    STEPCOUNT=50
+	  elif [ "$STEPCOUNT" -gt "0" ]; then
+  	    #echo "ACTION STEPCOUNT=$STEPCOUNT"
+		false
+	  else
+  	    STEPCOUNT=50
+	  fi
+	  echo "-- using a step count of ~ $STEPCOUNT"
+	  
       # do we have any pending stuff in the dev tree? If so, abort!
       git update-index --really-refresh
       if ! git diff-index --quiet HEAD ; then
@@ -148,7 +161,7 @@ else
           # we'll be doing, at most, N(=50) merges.
           # Also make sure we do not merge *every commit* as that's way too much hassle too, so assume a minimum 'step' of, say, 5.
           lc=$( cat /tmp/mtgo_tmp.txt | wc -l )
-          jmpc=$(( $lc / 50 ));
+          jmpc=$(( $lc / $STEPCOUNT ));
           jmpcadj=$(( $jmpc < 5 ? 5 : $jmpc ));
 
           echo "lc=$lc"
@@ -205,13 +218,15 @@ else
     h )
       cat <<EOT
 
-$0 <command-option>
+$0 <command-option> [<step-count>]
 
 Auto-merge the commits in the tracked origin+original branches with the current branch.
 
 Command Options:
 
--m      : run the automaton
+-m           : run the automaton
+
+<step-count> : (optional; default: 50) number of chunks to divide the commit list into: higher numbers produce smaller commit steps and reduce the risk of getting hard-to-decode collision sets, while lower numbers reduce the number of automated merges, thus cluttering the commit tree less with these.
 
 EOT
       rv=1
