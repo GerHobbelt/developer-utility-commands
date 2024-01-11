@@ -13,10 +13,10 @@
   "devDependencies": {
     "cssbeautify-cli": "0.5.3",
     "csslint": "1.0.5",
-    "eslint": "8.41.0",
+    "eslint": "8.56.0",
     "grunt-cli": "1.4.3",
     "gulp-cli": "2.3.0",
-    "js-beautify": "1.14.7",
+    "js-beautify": "1.14.11",
     "json": "11.0.0",
     "less-cli": "1.0.0",
     "mocha-cli": "1.0.1",
@@ -24,8 +24,9 @@
     "npm-packlist-cli": "1.0.0",
     "npx": "10.2.2",
     "@gerhobbelt/npm-check-updates": "11.7.1-4",
-    "prettier": "2.8.8",
+    "prettier": "3.1.1",
     "prettyjson": "1.2.5",
-    "@gerhobbelt/changelog": "1.4.2-13"
+    "@gerhobbelt/changelog": "1.4.2-13",
+    "typescript": "5.3.3"
   }
 }
