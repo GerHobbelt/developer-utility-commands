@@ -74,7 +74,7 @@ collectImportantRemotes() {
 
 
 
-while getopts ":RrcfqpwlLgGszxA012h" opt; do
+while getopts ":RrcfqpwlLgGszxvA012h" opt; do
 #echo opt+arg = "$opt$OPTARG"
 
 if [ "$GPP_PROCESS_SUBMODULES" = "ALL" ] ; then
@@ -145,6 +145,58 @@ A )
   done
   ;;
 
+v )
+  echo "--- list all (sub)repo's that have pending changes (delete/modify) ---"
+  #     git ls-files --exclude-standard -mt
+  # is presumably faster than git-status and we can use all the speed we can get here...
+  if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
+    if [ "$GPP_USE_FIND" != "Y" ] ; then
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        #echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        # https://unix.stackexchange.com/questions/127226/tee-stdout-to-stderr
+        #RV=$( git ls-files --exclude-standard -mt | tee /dev/tty | wc -l )
+        RV=$( git ls-files --exclude-standard -mt | wc -l )
+        if [ "$RV" -gt "0" ]; then
+          echo -e "$RV changes:    $f"
+        fi
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+
+      # https://unix.stackexchange.com/questions/127226/tee-stdout-to-stderr
+      #RV=$( git ls-files --exclude-standard -mt | tee /dev/tty | wc -l )
+      RV=$( git ls-files --exclude-standard -mt | wc -l )
+      if [ "$RV" -gt "0" ]; then
+        echo -e "$RV changes:    $f"
+      fi
+    else
+      # "$GPP_USE_FIND" == "Y"
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        #echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        # https://unix.stackexchange.com/questions/127226/tee-stdout-to-stderr
+        #RV=$( git ls-files --exclude-standard -mt | tee /dev/tty | wc -l )
+        RV=$( git ls-files --exclude-standard -mt | wc -l )
+        if [ "$RV" -gt "0" ]; then
+          echo -e "$RV changes:    $f"
+        fi
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
+  else
+    echo "### processing MAIN REPO: $wd"
+    # https://unix.stackexchange.com/questions/127226/tee-stdout-to-stderr
+    #RV=$( git ls-files --exclude-standard -mt | tee /dev/tty | wc -l )
+    RV=$( git ls-files --exclude-standard -mt | wc -l )
+    if [ "$RV" -gt "0" ]; then
+      echo -e "$RV changes:    $f"
+    fi
+  fi
+  ;;
+
 x )
   echo "--- execute the command in git repo and its submodules ---"
   for (( i=OPTIND; i > 1; i-- )) do
@@ -156,29 +208,29 @@ x )
   echo "command: ${ARGV_SET}"
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		echo "${ARGV_SET}"
-		${ARGV_SET}
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        echo "${ARGV_SET}"
+        ${ARGV_SET}
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
       echo "### processing MAIN REPO: $wd"
       echo "${ARGV_SET}"
       ${ARGV_SET}
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		echo "${ARGV_SET}"
-		${ARGV_SET}
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        echo "${ARGV_SET}"
+        ${ARGV_SET}
+        popd                                                                  2> /dev/null  > /dev/null
+      done
     fi
   else
     echo "### processing MAIN REPO: $wd"
@@ -195,74 +247,74 @@ f )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
-		TRACKING_URL=$( git config --get remote.origin.url )
-		# https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-		if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-		  git push --all --follow-tags                                          2>&1
-		  git push --tags                                                       2>&1
-		else
-		  echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-		fi
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+        TRACKING_URL=$( git config --get remote.origin.url )
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        else
+          echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+        fi
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-	  TRACKING_URL=$( git config --get remote.origin.url )
-	  # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-	  if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-		git push --all --follow-tags                                            2>&1
-		git push --tags                                                         2>&1
-	  else
-		echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-	  fi
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+      TRACKING_URL=$( git config --get remote.origin.url )
+      # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+      if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        git push --all --follow-tags                                            2>&1
+        git push --tags                                                         2>&1
+      else
+        echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+      fi
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
-		TRACKING_URL=$( git config --get remote.origin.url )
-		# https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-		if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-		  git push --all --follow-tags                                          2>&1
-		  git push --tags                                                       2>&1
-		else
-		  echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-		fi
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+        TRACKING_URL=$( git config --get remote.origin.url )
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        else
+          echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+        fi
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
       echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-	  TRACKING_URL=$( git config --get remote.origin.url )
-	  # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-	  if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
-		git push --all --follow-tags                                            2>&1
-		git push --tags                                                         2>&1
-	  else
-		echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
-	  fi
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+      TRACKING_URL=$( git config --get remote.origin.url )
+      # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+      if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        git push --all --follow-tags                                            2>&1
+        git push --tags                                                         2>&1
+      else
+        echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
+      fi
   fi
   ;;
 
@@ -274,34 +326,34 @@ q )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-		git push --all --follow-tags                                          2>&1
-		git push --tags                                                       2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
+        git push --all --follow-tags                                          2>&1
+        git push --tags                                                       2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-		git push --all --follow-tags                                          2>&1
-		git push --tags                                                       2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
+        git push --all --follow-tags                                          2>&1
+        git push --tags                                                       2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
     echo "--- Nothing to do ---"
   fi
@@ -315,42 +367,42 @@ p )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-		git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-		git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   fi
   ;;
 
@@ -362,42 +414,42 @@ w )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git push --all --follow-tags                                          2>&1
-		git push --tags                                                       2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git push --all --follow-tags                                          2>&1
+        git push --tags                                                       2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git push --all --follow-tags                                            2>&1
-	  git push --tags                                                         2>&1
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git push --all --follow-tags                                            2>&1
+      git push --tags                                                         2>&1
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git push --all --follow-tags                                          2>&1
-		git push --tags                                                       2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
-  else 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git push --all --follow-tags                                            2>&1
-	  git push --tags                                                         2>&1
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git push --all --follow-tags                                          2>&1
+        git push --tags                                                       2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
+  else
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git push --all --follow-tags                                            2>&1
+      git push --tags                                                         2>&1
   fi
   ;;
 
@@ -413,38 +465,38 @@ R )
   git reset --hard                                                        2>&1
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### RESET-ting PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git reset --hard                                                      2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### RESET-ting PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git reset --hard                                                      2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### RESET-ing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git reset --hard                                                        2>&1
+      echo "### RESET-ing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git reset --hard                                                        2>&1
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### RESET-ting PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git reset --hard                                                      2>&1
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### RESET-ting PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git reset --hard                                                      2>&1
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### RESET-ing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git reset --hard                                                        2>&1
+      echo "### RESET-ing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git reset --hard                                                        2>&1
   fi
   ;;
 
@@ -460,38 +512,38 @@ r )
   $UTILDIR/reset-it-repo-conditionally.sh
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### Processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		$UTILDIR/reset-it-repo-conditionally.sh
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### Processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        $UTILDIR/reset-it-repo-conditionally.sh
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### Processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  $UTILDIR/reset-it-repo-conditionally.sh
+      echo "### Processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      $UTILDIR/reset-it-repo-conditionally.sh
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### Processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		$UTILDIR/reset-it-repo-conditionally.sh
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### Processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        $UTILDIR/reset-it-repo-conditionally.sh
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### Processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  $UTILDIR/reset-it-repo-conditionally.sh
+      echo "### Processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      $UTILDIR/reset-it-repo-conditionally.sh
   fi
   ;;
 
@@ -532,66 +584,66 @@ L )
 
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  collectImportantRemotes
-	  #echo "Remotes:"
-	  #cat __git_lazy_remotes__
+      collectImportantRemotes
+      #echo "Remotes:"
+      #cat __git_lazy_remotes__
 
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
-	  git push --all --follow-tags                                              2>&1
-	  git push --all                                                            2>&1
-	  rm -f __git_lazy_remotes__
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
+      git push --all --follow-tags                                              2>&1
+      git push --all                                                            2>&1
+      rm -f __git_lazy_remotes__
 
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		collectImportantRemotes
-		#echo "Remotes @ $f:"
-		#cat __git_lazy_remotes__
+        collectImportantRemotes
+        #echo "Remotes @ $f:"
+        #cat __git_lazy_remotes__
 
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-		git push --all --follow-tags                                                        2>&1
-		git push --tags                                                                     2>&1
-		rm -f __git_lazy_remotes__
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+        git push --all --follow-tags                                                        2>&1
+        git push --tags                                                                     2>&1
+        rm -f __git_lazy_remotes__
+        popd                                                                  2> /dev/null  > /dev/null
+      done
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' | sort ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE/REPO: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' | sort ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE/REPO: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		collectImportantRemotes
-		#echo "Remotes @ $f:"
-		#cat __git_lazy_remotes__
+        collectImportantRemotes
+        #echo "Remotes @ $f:"
+        #cat __git_lazy_remotes__
 
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-		git push --all --follow-tags                                                        2>&1
-		git push --tags                                                                     2>&1
-		rm -f __git_lazy_remotes__
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+        git push --all --follow-tags                                                        2>&1
+        git push --tags                                                                     2>&1
+        rm -f __git_lazy_remotes__
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  collectImportantRemotes
-	  #echo "Remotes:"
-	  #cat __git_lazy_remotes__
+      collectImportantRemotes
+      #echo "Remotes:"
+      #cat __git_lazy_remotes__
 
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
-	  git push --all --follow-tags                                              2>&1
-	  git push --all                                                            2>&1
-	  rm -f __git_lazy_remotes__
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
+      git push --all --follow-tags                                              2>&1
+      git push --all                                                            2>&1
+      rm -f __git_lazy_remotes__
   fi
   ;;
 
@@ -627,58 +679,58 @@ G )
 
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  collectImportantRemotes
-	  #echo "Remotes:"
-	  #cat __git_lazy_remotes__
+      collectImportantRemotes
+      #echo "Remotes:"
+      #cat __git_lazy_remotes__
 
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                            2>&1
-	  rm -f __git_lazy_remotes__
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                            2>&1
+      rm -f __git_lazy_remotes__
 
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		collectImportantRemotes
-		#echo "Remotes @ $f:"
-		#cat __git_lazy_remotes__
+        collectImportantRemotes
+        #echo "Remotes @ $f:"
+        #cat __git_lazy_remotes__
 
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
-		rm -f __git_lazy_remotes__
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+        rm -f __git_lazy_remotes__
+        popd                                                                  2> /dev/null  > /dev/null
+      done
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' | sort ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' | sort ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		collectImportantRemotes
-		#echo "Remotes @ $f:"
-		#cat __git_lazy_remotes__
+        collectImportantRemotes
+        #echo "Remotes @ $f:"
+        #cat __git_lazy_remotes__
 
-		git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
-		git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
-		rm -f __git_lazy_remotes__
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+        git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
+        git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
+        rm -f __git_lazy_remotes__
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  collectImportantRemotes
-	  #echo "Remotes:"
-	  #cat __git_lazy_remotes__
+      collectImportantRemotes
+      #echo "Remotes:"
+      #cat __git_lazy_remotes__
 
-	  git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
-	  git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                            2>&1
-	  rm -f __git_lazy_remotes__
+      git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )                 2>&1
+      git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                            2>&1
+      rm -f __git_lazy_remotes__
   fi
   ;;
 
@@ -690,88 +742,88 @@ c )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		# http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
-		# http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
-		# https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
-		git gc
-		git fsck --full --unreachable --strict
-		git reflog expire --expire=0 --all
-		git reflog expire --expire-unreachable=now --all
-		git gc --prune=now
-		git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-		git repack -Adf
-		#git update-ref
-		git reflog expire --expire=now --expire-unreachable=now --all
-		git gc --aggressive --prune=all
-		git remote update --prune
-		git remote prune origin
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        # http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
+        # http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
+        # https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
+        git gc
+        git fsck --full --unreachable --strict
+        git reflog expire --expire=0 --all
+        git reflog expire --expire-unreachable=now --all
+        git gc --prune=now
+        git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
+        git repack -Adf
+        #git update-ref
+        git reflog expire --expire=now --expire-unreachable=now --all
+        git gc --aggressive --prune=all
+        git remote update --prune
+        git remote prune origin
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git gc
-	  git fsck --full --unreachable --strict
-	  git reflog expire --expire=0 --all
-	  git reflog expire --expire-unreachable=now --all
-	  git gc --prune=now
-	  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-	  git repack -Adf
-	  #git update-ref
-	  git reflog expire --expire=now --expire-unreachable=now --all
-	  git gc --aggressive --prune=all
-	  git remote update --prune
-	  git remote prune origin
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git gc
+      git fsck --full --unreachable --strict
+      git reflog expire --expire=0 --all
+      git reflog expire --expire-unreachable=now --all
+      git gc --prune=now
+      git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
+      git repack -Adf
+      #git update-ref
+      git reflog expire --expire=now --expire-unreachable=now --all
+      git gc --aggressive --prune=all
+      git remote update --prune
+      git remote prune origin
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		# http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
-		# http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
-		# https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
-		git gc
-		git fsck --full --unreachable --strict
-		git reflog expire --expire=0 --all
-		git reflog expire --expire-unreachable=now --all
-		git gc --prune=now
-		git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-		git repack -Adf
-		#git update-ref
-		git reflog expire --expire=now --expire-unreachable=now --all
-		git gc --aggressive --prune=all
-		git remote update --prune
-		git remote prune origin
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        # http://kparal.wordpress.com/2011/04/15/git-tip-of-the-day-pruning-stale-remote-tracking-branches/
+        # http://stackoverflow.com/questions/13881609/git-refs-remotes-origin-master-does-not-point-to-a-valid-object
+        # https://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repository
+        git gc
+        git fsck --full --unreachable --strict
+        git reflog expire --expire=0 --all
+        git reflog expire --expire-unreachable=now --all
+        git gc --prune=now
+        git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
+        git repack -Adf
+        #git update-ref
+        git reflog expire --expire=now --expire-unreachable=now --all
+        git gc --aggressive --prune=all
+        git remote update --prune
+        git remote prune origin
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git gc
-	  git fsck --full --unreachable --strict
-	  git reflog expire --expire=0 --all
-	  git reflog expire --expire-unreachable=now --all
-	  git gc --prune=now
-	  git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
-	  git repack -Adf
-	  #git update-ref
-	  git reflog expire --expire=now --expire-unreachable=now --all
-	  git gc --aggressive --prune=all
-	  git remote update --prune
-	  git remote prune origin
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git gc
+      git fsck --full --unreachable --strict
+      git reflog expire --expire=0 --all
+      git reflog expire --expire-unreachable=now --all
+      git gc --prune=now
+      git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc
+      git repack -Adf
+      #git update-ref
+      git reflog expire --expire=now --expire-unreachable=now --all
+      git gc --aggressive --prune=all
+      git remote update --prune
+      git remote prune origin
   fi
   ;;
 
@@ -783,42 +835,42 @@ z )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		$UTILDIR/remove-broken-inaccessible-remotes.sh
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+        $UTILDIR/remove-broken-inaccessible-remotes.sh
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
 
-	  $UTILDIR/remove-broken-inaccessible-remotes.sh
+      $UTILDIR/remove-broken-inaccessible-remotes.sh
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
 
-		$UTILDIR/remove-broken-inaccessible-remotes.sh
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+        $UTILDIR/remove-broken-inaccessible-remotes.sh
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
 
-	  $UTILDIR/remove-broken-inaccessible-remotes.sh
+      $UTILDIR/remove-broken-inaccessible-remotes.sh
   fi
   ;;
 
@@ -830,38 +882,38 @@ s )
   #echo args: $@
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
-	  for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git push -u origin --all
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
+      for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git push -u origin --all
+        popd                                                                  2> /dev/null  > /dev/null
+      done
 
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git push -u origin --all
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git push -u origin --all
     else
       # "$GPP_USE_FIND" == "Y"
-	  for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
-		pushd .                                                               2> /dev/null  > /dev/null
-		f=$( dirname "$f" )
-		echo "### processing PATH/SUBMODULE: $f"
-		cd $f
-		#echo "extra command: ${ARGV_SET}"
-		${ARGV_SET}
-		git push -u origin --all
-		popd                                                                  2> /dev/null  > /dev/null
-	  done
-	fi
+      for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
+        pushd .                                                               2> /dev/null  > /dev/null
+        f=$( dirname "$f" )
+        echo "### processing PATH/SUBMODULE: $f"
+        cd $f
+        #echo "extra command: ${ARGV_SET}"
+        ${ARGV_SET}
+        git push -u origin --all
+        popd                                                                  2> /dev/null  > /dev/null
+      done
+    fi
   else
-	  echo "### processing MAIN REPO: $wd"
-	  #echo "extra command: ${ARGV_SET}"
-	  ${ARGV_SET}
-	  git push -u origin --all
+      echo "### processing MAIN REPO: $wd"
+      #echo "extra command: ${ARGV_SET}"
+      ${ARGV_SET}
+      git push -u origin --all
   fi
   ;;
 
@@ -889,6 +941,7 @@ pull & push all git repositories in the current path.
 
 Commands:
 
+-v       : list the repositories which have pending changes: '[v]iew changes'.
 -l       : 'lazy': let git (1.8+) take care of pushing all submodules' changes
            which are relevant: this is your One Stop Push Shop.
            (Also performs a 'pull --all' before pushing.)
