@@ -44,6 +44,7 @@ else
 	  elif [ "$STEPCOUNT" -gt "0" ]; then
   	    #echo "ACTION STEPCOUNT=$STEPCOUNT"
 		false
+		OPTIND=$((OPTIND + 1))
 	  else
   	    STEPCOUNT=50
 	  fi
@@ -117,23 +118,28 @@ else
       fi
       echo "original remotes (including master-->main)... $rmts"
 
+	  for (( i=$OPTIND; i > 1; i-- )) do
+		shift
+	  done
+	  echo "ARGV remaining: $1 $2 ..."
+
       # also merge remote originals/forks mentioned on the command line:
-      while test -n "$2" ; do
-        echo "checking argv-listed remote: $2"
-        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' | grep -e "/$bns\$" );
+      while test -n "$1" ; do
+        echo "checking argv-listed remote: $1"
+        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/$bns\$" );
         echo "--> remotes: $rmts2"
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
         fi
 
-        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' | grep -e "/main\$" );
+        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/main\$" );
         echo "--> remotes(main): $rmts2"
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
         fi
 
         if [[ "$2" == *"/"* ]]; then
-          rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$2" | grep -v -e '->' );
+          rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' );
           echo "--> remotes */*: $rmts2"
           if test -n "$rmts2" ; then
             rmts="$rmts $rmts2"
