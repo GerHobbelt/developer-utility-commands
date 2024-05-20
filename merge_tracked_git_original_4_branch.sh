@@ -40,13 +40,13 @@ else
 	  STEPCOUNT=${!OPTIND}
 	  #echo "STEPCOUNT=$STEPCOUNT"
       if [ -z "$STEPCOUNT" ]; then
-  	    STEPCOUNT=50
+  	    STEPCOUNT=20
 	  elif [ "$STEPCOUNT" -gt "0" ]; then
   	    #echo "ACTION STEPCOUNT=$STEPCOUNT"
 		false
 		OPTIND=$((OPTIND + 1))
 	  else
-  	    STEPCOUNT=50
+  	    STEPCOUNT=20
 	  fi
 	  echo "-- using a step count of ~ $STEPCOUNT"
 	  
@@ -153,7 +153,7 @@ else
         echo "TRACKED BRANCH=$f"
 
         # get last common ancestor of us and the given remote/tracked branch:
-        anc=$( git merge-base  $bc $f );
+        anc=$( GIT_MERGE_AUTOEDIT=no  git merge-base $bc $f );
 
         echo "anc=$anc"
 
@@ -188,7 +188,7 @@ else
           for c in $( cat /tmp/mtgo_tmp_nth.txt ) ; do
             git reset --hard
             echo "Merge commit $c:"
-            git merge --commit --verbose --ff --autostash --overwrite-ignore $c
+            GIT_MERGE_AUTOEDIT=no  git merge --commit --verbose --ff --autostash --overwrite-ignore $c
             grv=$?
             if test $grv != 0 ; then
               echo "git merge failed (Error code: $grv).   Aborting/preventing the automated merge!"
