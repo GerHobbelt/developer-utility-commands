@@ -42,6 +42,28 @@ wd=$( $utildir/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 
+if test "$1" == "-s" ; then
+    shift
+	if test -e "$1" ; then
+		specfile="$1"
+	else
+		specfile=~/Downloads/grab
+	fi
+	
+	if ! test -f "$specfile" ; then
+		echo "ERROR: cannot find/open JSON spec file: $specfile"
+		exit 1
+	fi
+	
+	repo=$( json -f "$specfile" 'users.0.repo' )
+	origuser=$( json -f "$specfile" 'users.0.name' )
+    repoOwner=$( getRepoOwner "whoami" );
+	echo "$0 -m $repo = $origuser $repoOwner $specfile"
+	$0 -m "$repo" = "$origuser" "$repoOwner" "$specfile"
+	exit $?
+fi
+
+
 # when the commandline starts with '-me' or '--me' then the repoOwner is NOT assumed to match
 # the one of the repo you're currently standing in:
 if test "$1" == "-m" -o "$1" == "-me" -o "$1" == "--me" ; then
@@ -53,7 +75,7 @@ fi
 
 if test -z "$2" ; then
     cat <<EOT
-$0 [-m|-me|--me] <repo-name> <destination-directory> [<original-author> [<forks>]]
+$0 [-m|-me|--me|-s] <repo-name> <destination-directory> [<original-author> [<forks>]]
 
 Add a NEW submodule to the set of submodules.
 
