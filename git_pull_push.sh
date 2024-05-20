@@ -143,6 +143,11 @@ A )
     fi
     popd                                                                  2> /dev/null  > /dev/null
   done
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 v )
@@ -237,6 +242,11 @@ x )
     echo "${ARGV_SET}"
     ${ARGV_SET}
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 f )
@@ -316,6 +326,11 @@ f )
         echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
       fi
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 q )
@@ -357,6 +372,11 @@ q )
   else
     echo "--- Nothing to do ---"
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 p )
@@ -404,6 +424,11 @@ p )
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
       git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 w )
@@ -451,6 +476,11 @@ w )
       git push --all --follow-tags                                            2>&1
       git push --tags                                                         2>&1
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 R )
@@ -498,6 +528,11 @@ R )
       ${ARGV_SET}
       git reset --hard                                                        2>&1
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 r )
@@ -545,6 +580,11 @@ r )
       ${ARGV_SET}
       $UTILDIR/reset-it-repo-conditionally.sh
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 l )
@@ -567,6 +607,11 @@ l )
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
   git push --all --follow-tags                                            2>&1
   git push --tags                                                         2>&1
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 L )
@@ -645,6 +690,11 @@ L )
       git push --all                                                            2>&1
       rm -f __git_lazy_remotes__
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 g )
@@ -662,6 +712,11 @@ g )
   # even when the above commands b0rk, pull this repo anyway
   git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
   git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 G )
@@ -872,6 +927,11 @@ z )
 
       $UTILDIR/remove-broken-inaccessible-remotes.sh
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 s )
@@ -915,6 +975,11 @@ s )
       ${ARGV_SET}
       git push -u origin --all
   fi
+
+  # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
+  if test $# -gt 0; then
+    shift  $(expr  $# )
+  fi  
   ;;
 
 0 )
