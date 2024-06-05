@@ -40,13 +40,13 @@ else
 	  STEPCOUNT=${!OPTIND}
 	  #echo "STEPCOUNT=$STEPCOUNT"
       if [ -z "$STEPCOUNT" ]; then
-  	    STEPCOUNT=20
+  	    STEPCOUNT=8
 	  elif [ "$STEPCOUNT" -gt "0" ]; then
   	    #echo "ACTION STEPCOUNT=$STEPCOUNT"
 		false
 		OPTIND=$((OPTIND + 1))
 	  else
-  	    STEPCOUNT=20
+  	    STEPCOUNT=8
 	  fi
 	  echo "-- using a step count of ~ $STEPCOUNT"
 	  
