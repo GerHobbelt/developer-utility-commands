@@ -19,6 +19,8 @@ if test -f package.json ; then
     npm install
     ncu -u --packageFile package.json
     # npm update -g
+	npm audit fix
+	npm audit fix --force
     cat package.json > global-npm-packages.json
 fi
 rm -f package.json
