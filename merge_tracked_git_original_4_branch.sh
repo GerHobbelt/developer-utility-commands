@@ -96,9 +96,10 @@ else
       cat /tmp/git-branch-list.tmp | grep snyk-fix     >> /tmp/git-branch-to-be-nuked-list.tmp
       cat /tmp/git-branch-list.tmp | grep snyk-upgrade >> /tmp/git-branch-to-be-nuked-list.tmp
       cat /tmp/git-branch-list.tmp | grep perfdata     >> /tmp/git-branch-to-be-nuked-list.tmp
+      cat /tmp/git-branch-list.tmp | grep imgbot       >> /tmp/git-branch-to-be-nuked-list.tmp
       for f in $( cat /tmp/git-branch-to-be-nuked-list.tmp ) ; do git branch -dr $f ; done
 
-      cat /tmp/git-branch-list.tmp | grep -v dependabot | grep -v snyk-fix | grep -v snyk-upgrade | grep -v perfdata > /tmp/git-branch-cleaned-list.tmp
+      cat /tmp/git-branch-list.tmp | grep -v dependabot | grep -v snyk-fix | grep -v snyk-upgrade | grep -v imgbot | grep -v perfdata > /tmp/git-branch-cleaned-list.tmp
 
       git gc --auto --prune
 
