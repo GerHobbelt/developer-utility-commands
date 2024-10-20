@@ -57,6 +57,11 @@ BEGIN       {
     sub(/git:\/\/github\.com\//, "git@github.com:", uri);
     sub(/git@github\.com:/, "https://github.com/", uri);
     sub(/git@gitlab\.com:/, "https://gitlab.com/", uri);
+	
+    # modern git remote URIs must not use HTTPS for github or gitlab:
+    sub(/https:\/\/github\.com\//, "git@github.com:", uri);
+    sub(/https:\/\/gitlab\.com\//, "git@gitlab.com:", uri);
+	
     stmts[++idx] = sprintf("register_remote %-60s  %-40s %-80s $# $@", submodule_path, name, uri);
     #printf("# id %d: %s\n", idx, stmts[idx]);
     next;
