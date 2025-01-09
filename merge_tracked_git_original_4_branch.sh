@@ -36,19 +36,21 @@ else
     rv=4;
     case "$opt$OPTARG" in
     m )
+      echo ""
+      echo ""
 	  #STEPCOUNT=${OPTIND}
 	  STEPCOUNT=${!OPTIND}
 	  #echo "STEPCOUNT=$STEPCOUNT"
       if [ -z "$STEPCOUNT" ]; then
   	    STEPCOUNT=8
-	  elif [ "$STEPCOUNT" -gt "0" ]; then
+	  elif test "$STEPCOUNT" -gt "0"     2> /dev/null ; then    
   	    #echo "ACTION STEPCOUNT=$STEPCOUNT"
 		false
 		OPTIND=$((OPTIND + 1))
 	  else
   	    STEPCOUNT=8
 	  fi
-	  echo "-- using a step count of ~ $STEPCOUNT"
+	  echo "--------------------------------------------- using a step count of ~ $STEPCOUNT"
 	  
       # do we have any pending stuff in the dev tree? If so, abort!
       git update-index --really-refresh
@@ -80,7 +82,8 @@ else
 
       echo "current branch name.......................... $bn"
       echo "current branches............................. $bns"
-      echo "current commit............................... $bc"
+      
+	  echo "current commit............................... $bc"
 
       # fix $bns for those (rare) repos which have 'master' as both *label* and *branch* name. *sigh* (libeigen is an example?)
 	  bns=$( echo "$bns" | sed -e 's/.*\///' )
@@ -106,23 +109,20 @@ else
       # now get the 'origin' + 'original' remotes:
       rmts=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
       echo "original remotes............................. $rmts"
-      if test -z "$rmts" ; then
-        break
+	  
+      if test -z "$rmts" && test "$bns" = "master" ; then
+	    # also merge remote originals which have moved from 'master' to 'main', while we haven't:
+	    rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/main\$" );
+		if test -n "$rmts2" ; then
+		  rmts="$rmts2"
+		fi
+        echo "original remotes (including master-->main)... $rmts"
       fi
-
-      # also merge remote originals which have moved from 'master' to 'main', while we haven't:
-      rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/main\$" );
-      if test "$bns" = "master" ; then
-        if test -n "$rmts2" ; then
-          rmts="$rmts $rmts2"
-        fi
-      fi
-      echo "original remotes (including master-->main)... $rmts"
 
 	  for (( i=$OPTIND; i > 1; i-- )) do
 		shift
 	  done
-	  echo "ARGV remaining: $1 $2 ..."
+	  echo "ARGV remaining............................... $*"
 
       # also merge remote originals/forks mentioned on the command line:
       while test -n "$1" ; do
@@ -133,11 +133,13 @@ else
           rmts="$rmts $rmts2"
         fi
 
-        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/main\$" );
-        echo "--> remotes(main): $rmts2"
-        if test -n "$rmts2" ; then
-          rmts="$rmts $rmts2"
-        fi
+        if test "$bns" = "master" ; then
+          rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/main\$" );
+          echo "--> remotes(main): $rmts2"
+          if test -n "$rmts2" ; then
+            rmts="$rmts $rmts2"
+          fi
+		fi
 
         if [[ "$2" == *"/"* ]]; then
           rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' );
@@ -146,9 +148,20 @@ else
             rmts="$rmts $rmts2"
           fi
         fi
-        echo "original remotes (including argv list)....... $rmts"
+        echo "original remotes (including argv list)....... $( echo "$rmts" | sed -E -e 's/\s+/ /g' -e 's/^ //' )"
         shift
       done
+
+      rmts2=$( 
+		for f in $( echo "$rmts" | tr ' ' '\n' | sort | uniq ) ; do
+		  echo "$f"
+		done
+	  )
+	  rmts="$rmts2"
+      echo "unique remotes (including argv list)......... $( echo "$rmts" | tr "\n" " " )"
+
+      echo ""
+      echo ""
 
       for f in $rmts ; do
         echo "TRACKED BRANCH=$f"
@@ -156,7 +169,7 @@ else
         # get last common ancestor of us and the given remote/tracked branch:
         anc=$( GIT_MERGE_AUTOEDIT=no  git merge-base $bc $f );
 
-        echo "anc=$anc"
+        #echo "anc=$anc"
 
         if test -n "$anc" ; then
           rv=2
@@ -171,9 +184,9 @@ else
           jmpc=$(( $lc / $STEPCOUNT ));
           jmpcadj=$(( $jmpc < 5 ? 5 : $jmpc ));
 
-          echo "lc=$lc"
-          echo "jmpc=$jmpc"
-          echo "jmpcadj=$jmpcadj"
+          #echo "lc=$lc"
+          #echo "jmpc=$jmpc"
+          #echo "jmpcadj=$jmpcadj"
           cat /tmp/mtgo_tmp.txt
 
           echo '========================================='
@@ -200,8 +213,8 @@ else
             # https://stackoverflow.com/questions/12144158/how-to-check-if-sed-has-changed-a-file
             cre=$( echo "$c" | sed -e 's/\//\\\//g' )
 
-            echo "c=$c"
-            echo "cre=$cre"
+            #echo "c=$c"
+            #echo "cre=$cre"
 
             sed -i -E -e "1s/^(Merge .*$cre)/(:automated_merge:) \1/ w /dev/stdout" /tmp/mtgo_tmp_commit.txt > /tmp/mtgo_tmp_change.txt
             if test -s /tmp/mtgo_tmp_change.txt ; then
