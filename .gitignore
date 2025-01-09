@@ -106,3 +106,4 @@ dist
 # ignore the npm lock file produced by the npm-global install utility script available and run in this directory:
 /package-lock.json
 
+/git-filter-repo

@@ -6,7 +6,7 @@
 if test -f '.gitmodules' ; then
 
 	echo "Processing .gitmodules..."
-	git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | sort | grep sync |
+	git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | sort |
 		while read path_key path
 		do
 			url_key=$(echo $path_key | sed 's/\.path/.url/');
@@ -15,6 +15,7 @@ if test -f '.gitmodules' ; then
 			url_org=$( git config --get "$url_key" );
 			url=$( git config -f .gitmodules --get "$url_key" );
 			echo ">>> url_org=${url_org}; url=${url}; path=${path}"
+			
 			# If the url_key doesn't yet exist then backup up the existing
 			# directory if necessary and add the submodule
 			#if [ ! $(git config --get "$url_key") ]; then
@@ -55,7 +56,7 @@ if test -f '.gitmodules' ; then
 	# ...but the submodules would check out in detached HEAD state and I 
 	# didn't like that, so now I do this...
 
-	git submodule foreach 'git checkout $(git config -f $toplevel/.gitmodules submodule.$name.branch || echo master)';
+	#git submodule foreach 'git checkout $(git config -f $toplevel/.gitmodules submodule.$name.branch || echo master)';
 else
 	echo "No .gitmodules file found in the current directory! No action taken."
 fi
