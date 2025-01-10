@@ -8,6 +8,9 @@
 
 wd="$( pwd )";
 
+# generate a 'random' filename part:
+tmpmark=$( date -u -R | tr -d ' :+,' )
+
 pushd $(dirname $0)                                                                                     2> /dev/null  > /dev/null
 
 # go to root of project
@@ -87,7 +90,10 @@ else
 
       # fix $bns for those (rare) repos which have 'master' as both *label* and *branch* name. *sigh* (libeigen is an example?)
 	  bns=$( echo "$bns" | sed -e 's/.*\///' )
-
+      if test "$bns" = "master" ; then
+	    # also merge remote originals which have moved from 'master' to 'main', while we haven't:
+		bns="master|main"
+	  fi
       echo "branch name we'll be looking for ............ $bns"
 
       # EXTRA: nuke all obnoxious dependabot + Snyk + ICU branches. URGH!
@@ -107,18 +113,9 @@ else
       git gc --auto --prune
 
       # now get the 'origin' + 'original' remotes:
-      rmts=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/$bns\$" );
-      echo "original remotes............................. $rmts"
+      rmts=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -E -e "/($bns)\$" );
+      echo "original remotes............................. $( echo "$rmts" | tr '\n' ' ' | sed -E -e 's/\s+/ /g' -e 's/^ //' )"
 	  
-      if test -z "$rmts" && test "$bns" = "master" ; then
-	    # also merge remote originals which have moved from 'master' to 'main', while we haven't:
-	    rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep origin | grep -v -e '->' | grep -e "/main\$" );
-		if test -n "$rmts2" ; then
-		  rmts="$rmts2"
-		fi
-        echo "original remotes (including master-->main)... $rmts"
-      fi
-
 	  for (( i=$OPTIND; i > 1; i-- )) do
 		shift
 	  done
@@ -127,19 +124,11 @@ else
       # also merge remote originals/forks mentioned on the command line:
       while test -n "$1" ; do
         echo "checking argv-listed remote: $1"
-        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/$bns\$" );
+        rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -E -e "/($bns)\$" );
         echo "--> remotes: $rmts2"
         if test -n "$rmts2" ; then
           rmts="$rmts $rmts2"
         fi
-
-        if test "$bns" = "master" ; then
-          rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' | grep -e "/main\$" );
-          echo "--> remotes(main): $rmts2"
-          if test -n "$rmts2" ; then
-            rmts="$rmts $rmts2"
-          fi
-		fi
 
         if [[ "$2" == *"/"* ]]; then
           rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' );
