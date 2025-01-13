@@ -134,20 +134,23 @@ A )
     git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
     git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
     TRACKING_URL=$( git config --get remote.origin.url )
-    # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-    if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+    if [ -f ./git_push_all.sh ] ; then
+      ./git_push_all.sh
+    elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
       git push --all --follow-tags                                          2>&1
       git push --tags                                                       2>&1
     else
       echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
     fi
+    echo "~~~ completed processing PATH/SUBMODULE: $f"
     popd                                                                  2> /dev/null  > /dev/null
   done
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 v )
@@ -219,12 +222,14 @@ x )
         cd $f
         echo "${ARGV_SET}"
         ${ARGV_SET}
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
       echo "### processing MAIN REPO: $wd"
       echo "${ARGV_SET}"
       ${ARGV_SET}
+      echo "~~~ completed processing MAIN REPO: $wd"
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -234,6 +239,7 @@ x )
         cd $f
         echo "${ARGV_SET}"
         ${ARGV_SET}
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -241,12 +247,13 @@ x )
     echo "### processing MAIN REPO: $wd"
     echo "${ARGV_SET}"
     ${ARGV_SET}
+    echo "~~~ completed processing MAIN REPO: $wd"
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 f )
@@ -266,13 +273,16 @@ f )
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
         TRACKING_URL=$( git config --get remote.origin.url )
-        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-        if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
           git push --all --follow-tags                                          2>&1
           git push --tags                                                       2>&1
         else
           echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
         fi
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
@@ -282,13 +292,16 @@ f )
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
       git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
       TRACKING_URL=$( git config --get remote.origin.url )
-      # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-      if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
         git push --all --follow-tags                                            2>&1
         git push --tags                                                         2>&1
       else
         echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
       fi
+      echo "~~~ completed processing MAIN REPO: $wd"
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -301,13 +314,16 @@ f )
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
         TRACKING_URL=$( git config --get remote.origin.url )
-        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-        if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
           git push --all --follow-tags                                          2>&1
           git push --tags                                                       2>&1
         else
           echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
         fi
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -318,19 +334,22 @@ f )
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1
       git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
       TRACKING_URL=$( git config --get remote.origin.url )
-      # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
-      if [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
         git push --all --follow-tags                                            2>&1
         git push --tags                                                         2>&1
       else
         echo "### Warning: cannot PUSH $f due to tracking URL: $TRACKING_URL"
       fi
+      echo "~~~ completed processing MAIN REPO: $wd"
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 q )
@@ -349,8 +368,14 @@ q )
         ${ARGV_SET}
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-        git push --all --follow-tags                                          2>&1
-        git push --tags                                                       2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        fi
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     else
@@ -364,8 +389,14 @@ q )
         ${ARGV_SET}
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1
-        git push --all --follow-tags                                          2>&1
-        git push --tags                                                       2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        fi
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -376,7 +407,7 @@ q )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 p )
@@ -395,6 +426,7 @@ p )
         ${ARGV_SET}
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
         git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
@@ -403,6 +435,7 @@ p )
       ${ARGV_SET}
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
       git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      echo "~~~ completed processing MAIN REPO: $wd"
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -414,6 +447,7 @@ p )
         ${ARGV_SET}
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
         git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                              2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -423,12 +457,13 @@ p )
       ${ARGV_SET}
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --all --tags                                                  2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
       git pull ${GIT_PARALLEL_JOBS_CMDARG}                                                                2>&1 | grep -v -e 'disabling multiplexing\|Connection reset by peer\|failed to receive fd 0 from client\|no message header'
+      echo "~~~ completed processing MAIN REPO: $wd"
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 w )
@@ -445,16 +480,28 @@ w )
         cd $f
         #echo "extra command: ${ARGV_SET}"
         ${ARGV_SET}
-        git push --all --follow-tags                                          2>&1
-        git push --tags                                                       2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        fi
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
       echo "### processing MAIN REPO: $wd"
       #echo "extra command: ${ARGV_SET}"
       ${ARGV_SET}
-      git push --all --follow-tags                                            2>&1
-      git push --tags                                                         2>&1
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        git push --all --follow-tags                                            2>&1
+        git push --tags                                                         2>&1
+      fi
+      echo "~~~ completed processing MAIN REPO: $wd"
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -464,8 +511,14 @@ w )
         cd $f
         #echo "extra command: ${ARGV_SET}"
         ${ARGV_SET}
-        git push --all --follow-tags                                          2>&1
-        git push --tags                                                       2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                          2>&1
+          git push --tags                                                       2>&1
+        fi
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -473,14 +526,20 @@ w )
       echo "### processing MAIN REPO: $wd"
       #echo "extra command: ${ARGV_SET}"
       ${ARGV_SET}
-      git push --all --follow-tags                                            2>&1
-      git push --tags                                                         2>&1
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        git push --all --follow-tags                                            2>&1
+        git push --tags                                                         2>&1
+      fi
+      echo "~~~ completed processing MAIN REPO: $wd"
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 R )
@@ -532,7 +591,7 @@ R )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 r )
@@ -584,7 +643,7 @@ r )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 l )
@@ -611,7 +670,7 @@ l )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 L )
@@ -635,8 +694,13 @@ L )
 
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
       git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
-      git push --all --follow-tags                                              2>&1
-      git push --all                                                            2>&1
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        git push --all --follow-tags                                              2>&1
+        git push --all                                                            2>&1
+      fi
       rm -f __git_lazy_remotes__
 
       for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
@@ -652,9 +716,15 @@ L )
 
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-        git push --all --follow-tags                                                        2>&1
-        git push --tags                                                                     2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                                        2>&1
+          git push --tags                                                                     2>&1
+        fi
         rm -f __git_lazy_remotes__
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     else
@@ -673,9 +743,15 @@ L )
 
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )               2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                      2>&1
-        git push --all --follow-tags                                                        2>&1
-        git push --tags                                                                     2>&1
+        if [ -f ./git_push_all.sh ] ; then
+          ./git_push_all.sh
+        elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+          # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+          git push --all --follow-tags                                                        2>&1
+          git push --tags                                                                     2>&1
+        fi
         rm -f __git_lazy_remotes__
+        echo "~~~ completed processing PATH/SUBMODULE/REPO: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -686,15 +762,20 @@ L )
 
       git fetch ${GIT_PARALLEL_JOBS_CMDARG} --multiple $( cat __git_lazy_remotes__ ) --tags                 2>&1
       git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                        2>&1
-      git push --all --follow-tags                                              2>&1
-      git push --all                                                            2>&1
+      if [ -f ./git_push_all.sh ] ; then
+        ./git_push_all.sh
+      elif [ "x$TRACKING_URL" != "x${TRACKING_URL/GerHobbelt/}" ] ; then
+        # https://stackoverflow.com/questions/229551/how-to-check-if-a-string-contains-a-substring-in-bash
+        git push --all --follow-tags                                              2>&1
+        git push --all                                                            2>&1
+      fi
       rm -f __git_lazy_remotes__
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 g )
@@ -716,7 +797,7 @@ g )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 G )
@@ -756,6 +837,7 @@ G )
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
         rm -f __git_lazy_remotes__
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     else
@@ -775,6 +857,7 @@ G )
         git fetch ${GIT_PARALLEL_JOBS_CMDARG} --tags --multiple $( cat __git_lazy_remotes__ )             2>&1
         git pull ${GIT_PARALLEL_JOBS_CMDARG} --ff-only                                                    2>&1
         rm -f __git_lazy_remotes__
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -818,6 +901,7 @@ c )
         git gc --aggressive --prune=all
         git remote update --prune
         git remote prune origin
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
@@ -836,6 +920,7 @@ c )
       git gc --aggressive --prune=all
       git remote update --prune
       git remote prune origin
+      echo "~~~ completed processing MAIN REPO: $wd"
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -860,6 +945,7 @@ c )
         git gc --aggressive --prune=all
         git remote update --prune
         git remote prune origin
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -879,6 +965,7 @@ c )
       git gc --aggressive --prune=all
       git remote update --prune
       git remote prune origin
+      echo "~~~ completed processing MAIN REPO: $wd"
   fi
   ;;
 
@@ -898,6 +985,7 @@ z )
         ${ARGV_SET}
 
         $UTILDIR/remove-broken-inaccessible-remotes.sh
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
 
@@ -917,6 +1005,7 @@ z )
         ${ARGV_SET}
 
         $UTILDIR/remove-broken-inaccessible-remotes.sh
+        echo "~~~ completed processing PATH/SUBMODULE: $f"
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -926,12 +1015,13 @@ z )
       ${ARGV_SET}
 
       $UTILDIR/remove-broken-inaccessible-remotes.sh
+      echo "~~~ completed processing MAIN REPO: $wd"
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 s )
@@ -979,7 +1069,7 @@ s )
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
   if test $# -gt 0; then
     shift  $(expr  $# )
-  fi  
+  fi
   ;;
 
 0 )
@@ -1090,6 +1180,7 @@ then pass the ABSOLUTE PATH to that shell script as the command to execute. E.g.
 git submodule directory visited by the git_pull_push command/script.)
 
 EOT
+  exit 2
   ;;
 esac
 done
