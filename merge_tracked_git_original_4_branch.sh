@@ -130,7 +130,7 @@ else
           rmts="$rmts $rmts2"
         fi
 
-        if [[ "$2" == *"/"* ]]; then
+        if [[ "$1" == *"/"* ]]; then
           rmts2=$( cat /tmp/git-branch-cleaned-list.tmp | grep "$1" | grep -v -e '->' );
           echo "--> remotes */*: $rmts2"
           if test -n "$rmts2" ; then
