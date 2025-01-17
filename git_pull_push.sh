@@ -603,7 +603,7 @@ r )
 
   # reset main project first to (possibly) restore the submodules to their intended commit position before we reset them
   ${ARGV_SET}
-  $UTILDIR/reset-it-repo-conditionally.sh
+  $UTILDIR/reset-git-repo-conditionally.sh
   if [ "$GPP_PROCESS_SUBMODULES" != "NONE" ] ; then
     if [ "$GPP_USE_FIND" != "Y" ] ; then
       for f in $( git submodule foreach ${GPP_SUBMOD_RECURSIVE_OPT} --quiet pwd ) ; do
@@ -612,14 +612,14 @@ r )
         cd $f
         #echo "extra command: ${ARGV_SET}"
         ${ARGV_SET}
-        $UTILDIR/reset-it-repo-conditionally.sh
+        $UTILDIR/reset-git-repo-conditionally.sh
         popd                                                                  2> /dev/null  > /dev/null
       done
 
       echo "### Processing MAIN REPO: $wd"
       #echo "extra command: ${ARGV_SET}"
       ${ARGV_SET}
-      $UTILDIR/reset-it-repo-conditionally.sh
+      $UTILDIR/reset-git-repo-conditionally.sh
     else
       # "$GPP_USE_FIND" == "Y"
       for f in $( find . $GPP_FIND_DEPTH_LIMITER -name '.git' -a ! -path '*/tmp/*' ) ; do
@@ -629,7 +629,7 @@ r )
         cd $f
         #echo "extra command: ${ARGV_SET}"
         ${ARGV_SET}
-        $UTILDIR/reset-it-repo-conditionally.sh
+        $UTILDIR/reset-git-repo-conditionally.sh
         popd                                                                  2> /dev/null  > /dev/null
       done
     fi
@@ -637,7 +637,7 @@ r )
       echo "### Processing MAIN REPO: $wd"
       #echo "extra command: ${ARGV_SET}"
       ${ARGV_SET}
-      $UTILDIR/reset-it-repo-conditionally.sh
+      $UTILDIR/reset-git-repo-conditionally.sh
   fi
 
   # eat the remaining argv[] from the commandline, so getopts won't loop again after this:
