@@ -13,20 +13,20 @@
   "devDependencies": {
     "cssbeautify-cli": "0.5.3",
     "csslint": "1.0.5",
-    "eslint": "9.20.0",
+    "eslint": "9.23.0",
     "grunt-cli": "1.5.0",
     "gulp-cli": "3.0.0",
-    "js-beautify": "1.15.2",
+    "js-beautify": "1.15.4",
     "json": "11.0.0",
     "less-cli": "1.0.0",
     "mocha-cli": "1.0.1",
     "npm-check": "6.0.1",
     "npm-packlist-cli": "1.0.0",
     "@gerhobbelt/npm-check-updates": "11.7.1-4",
-    "prettier": "3.4.2",
+    "prettier": "3.5.3",
     "prettyjson": "1.2.5",
     "@gerhobbelt/changelog": "1.4.2-13",
-    "sass": "1.84.0",
-    "typescript": "5.7.3"
+    "sass": "1.86.0",
+    "typescript": "5.8.2"
   }
 }
