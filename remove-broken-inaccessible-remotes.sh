@@ -3,6 +3,7 @@
 # Determined the set of broken remotes by running the equivalent of a NON-RECURSIVE `git_push_pull -p` i.e. git-pull-only and having a look at the git (fatal error) responses.
 #
 # NOTE: Hence the SIDE-EFFECT of this script is that your repo gets git-pull updated with all its remotes. No harm done, I feel.  ;-)
+#
 
 UTILDIR=$( dirname "$0" )
 #echo $UTILDIR
@@ -63,6 +64,42 @@ fi
 
 echo ""
 echo "--------------------------------------------------"
+echo ""
+
+#
+# second flavour of inaccessible:
+#
+#     could not fetch 'GIBSONLINKTREE' (exit code: 128)
+#
+
+cat $TMP_FILE | grep 'could not fetch.*exit code: 128' > $TMP_FILE.2
+
+echo ""
+echo "--------------------------------------------------"
+echo ":: Going to remove these inaccessible git remotes:"
+echo ".................................................."
+
+cat $TMP_FILE.2 | grep -v origin | sed -e "s/could not fetch '//" -e "s/' [(]exit code: 128[)]//" | tee $TMP_FILE.3
+
+if test $( cat $TMP_FILE.3 | wc -l ) == "0" ; then
+	echo ""
+	echo "    (nothing to delete)"
+	echo ""
+else
+	echo ""
+	for f in $( cat $TMP_FILE.3 ) ; do
+		for r in $( git remote -v | grep -e "$f" | cut -f 1 | uniq ) ; do
+			echo "DELETING REMOTE:  '$r'"
+			git remote rm   $r
+		done
+	done
+fi
+
+echo ""
+echo "--------------------------------------------------"
+echo ""
+
+
 
 # make sure no 'git remote' error makes it to the outside: we don't care if it went wrong
 # as some of those remotes may be buggered anyway.
