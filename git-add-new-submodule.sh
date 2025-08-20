@@ -42,6 +42,15 @@ wd=$( $utildir/print-git-repo-base-directory.sh "$wd" )
 echo "git repository base directory: $wd"
 cd "$wd"
 
+# when the commandline starts with '-p' or '--prefix' then the target directory is prefixed: <prefix>-<repoName>:
+if test "$1" == "-p" -o "$1" == "-prefix" -o "$1" == "--prefix" ; then
+    shift
+    repoDirPrefix=$1
+	shift
+else
+    repoDirPrefix=
+fi
+
 if test "$1" == "-s" ; then
     shift
 	if test -e "$1" ; then
@@ -58,8 +67,40 @@ if test "$1" == "-s" ; then
 	repo=$( json -f "$specfile" 'users.0.repo' )
 	origuser=$( json -f "$specfile" 'users.0.name' )
     repoOwner=$( getRepoOwner "whoami" );
-	echo "$0 -m $repo = $origuser $repoOwner $specfile"
-	$0 -m "$repo" = "$origuser" "$repoOwner" "$specfile"
+	if test -z "$repoDirPrefix" ; then
+		repoTargetDir="="
+	else
+		repoTargetDir="${repoDirPrefix}-${repo}"
+    fi	
+	echo "$0 -m $repo $repoTargetDir $origuser $repoOwner $specfile"
+	$0 -m "$repo" "$repoTargetDir" "$origuser" "$repoOwner" "$specfile"
+	exit $?
+fi
+
+if test "$1" == "-o" ; then
+    shift
+	if test -e "$1" ; then
+		specfile="$1"
+	else
+		specfile=~/Downloads/grab
+	fi
+	
+	if ! test -f "$specfile" ; then
+		echo "ERROR: cannot find/open JSON spec file: $specfile"
+		exit 1
+	fi
+	
+	repo=$( json -f "$specfile" 'users.0.repo' )
+	origuser=$( json -f "$specfile" 'users.0.name' )
+    repoOwner=$origuser;
+	giturl=git@github.com:$repoOwner/$repo.git
+	if test -z "$repoDirPrefix" ; then
+		repoTargetDir="="
+	else
+		repoTargetDir="${repoDirPrefix}-${repo}"
+    fi	
+	echo "$0   $giturl $repoTargetDir $origuser $repoOwner $specfile"
+	$0   "$giturl" "$repoTargetDir" "$origuser" "$repoOwner" "$specfile"
 	exit $?
 fi
 
@@ -69,13 +110,16 @@ fi
 if test "$1" == "-m" -o "$1" == "-me" -o "$1" == "--me" ; then
     shift
     repoOwner=$( getRepoOwner "whoami" );
+elif test "$1" == "-o" ; then
+    shift
+    repoOwner=$( getRepoOwner "whoami" );
 else
     repoOwner=$( getRepoOwner );
 fi
 
 if test -z "$2" ; then
     cat <<EOT
-$0 [-m|-me|--me|-s] <repo-name> <destination-directory> [<original-author> [<forks>]]
+$0 [-p|--prefix <prefix-for-destdir>] [-m|-me|--me|-s|-o] <repo-name> <destination-directory> [<original-author> [<forks>]]
 
 Add a NEW submodule to the set of submodules.
 
@@ -100,10 +144,33 @@ where 'repo-owner' is the remote owner (default: '$repoOwner') which owns
 the remote repository from which you clone; the 'repo-owner' will also be the
 target for any 'git push'.
 
-Note:
+Notes:
+
   When the commandline starts with '-m', '-me' or '--me' then the repo-owner is
   NOT assumed to match the one of the repo you're currently standing in; instead
   we'll only look at the local git user.
+	
+  --------------------------------------------------------------------------
+  
+  When the commandline starts with '-o' ("other!owner") is specified, the 
+  repo-owner is NOT the local git user either, but assumed to equal the 
+  "original-author" instead!  This is used when you wish to submodule a 
+  foreign repo, which you: 
+  **** DO NOT INTEND TO OWN A LOCAL/COMPANY COPY/CLONE OF! ****
+	
+  --------------------------------------------------------------------------
+  
+  Contrasting '-o', the '-s' ("self") identifies a repo that we own, either
+  directly or through owning a clone/fork.
+	
+  --------------------------------------------------------------------------
+  
+  '-p' is an aid for both '-s' and '-o' approaches, where a target directory 
+  PREFIX can be specified. The target directory will then be constructed as:
+  
+    <prefix>-<repoName>
+	
+  --------------------------------------------------------------------------
 
   Right now, with your current commandline, the repo-name will be:
 
@@ -122,6 +189,12 @@ Example usage:
   us to easily sync/update our fork/clone from the original and other forks using a simple
   'git pull --all' command (or even easier: by running the git_pull_push.sh script).
 
+	 tools/git_add_submodule.sh -s ~/Download/grab.json
+	 tools/git_add_submodule.sh -p unicode -o ~/Download/test-corpora-grab.json
+	 
+  which will both use the JSON files specified (as grabbed from github web page) to
+  register the submodule with its owner and all/most active forks.
+  
 EOT
     exit 0;
 fi
