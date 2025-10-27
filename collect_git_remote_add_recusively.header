@@ -53,7 +53,7 @@ set up git remotes for any / all submodules.
 
 -f       : 'full featured', i.e. refresh all submodule remotes: change their access URIs
            when they have changed.
--D       : DEBUG: print extensive debug / progress information.           
+-D       : DEBUG: print extensive debug / progress information.
 -q       : 'quick', i.e. only register all submodule remotes which have not been
            set up yet.
 
@@ -63,7 +63,7 @@ submodule-paths
          : when you specify one or more submodule directories, than only the
            remotes for those submodules will be set up.
            This is optional; the default sets up the remotes for ALL submodules.
-	   Specify '.' as the path to match ALL submodules.
+       Specify '.' as the path to match ALL submodules.
 
 EOT
   exit
@@ -108,7 +108,7 @@ function register_remote {
             fi
             pushd $path                                                         2> /dev/null   > /dev/null
             if test "$mode" = "f" ; then
-		if [ $debug ] ; then echo "git remote rm $name"; fi
+                if [ $debug ] ; then echo "git remote rm $name"; fi
                 git remote rm $name
             fi
             if [ $debug ] ; then echo "git remote add $name $repo"; fi

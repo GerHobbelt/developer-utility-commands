@@ -171,10 +171,12 @@ else
           # Also make sure we do not merge *every commit* as that's way too much hassle too, so assume a minimum 'step' of, say, 5.
           lc=$( cat /tmp/mtgo_tmp.txt | wc -l )
           jmpc=$(( $lc / $STEPCOUNT ));
-          jmpcadj=$(( $jmpc < 5 ? 5 : $jmpc ));
+          jmpcadj1=$(( $jmpc > 50 ? 50 : $jmpc ));
+          jmpcadj=$(( $jmpcadj1 < 5 ? 5 : $jmpcadj1 ));
 
           #echo "lc=$lc"
           #echo "jmpc=$jmpc"
+          #echo "jmpcadj1=$jmpcadj1"
           #echo "jmpcadj=$jmpcadj"
           cat /tmp/mtgo_tmp.txt
 
