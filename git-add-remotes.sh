@@ -133,6 +133,8 @@ EOT
                 echo ""
                 # http://unix.stackexchange.com/questions/41232/loop-through-tab-delineated-file-in-bash-script
                 # This code requires `npm install json -g` (jsontools: http://trentm.com/json/ )
+                echo node $utildir/git-add-remotes-helper.js $repo $networkmeta 
+                echo '====================================='
                 node $utildir/git-add-remotes-helper.js $repo $networkmeta | json users | json -a name repo | while read author clonename ; do
                     if [[ $clonename =~ ":" ]] ; then
                         echo "git remote add ${author} $clonename"
