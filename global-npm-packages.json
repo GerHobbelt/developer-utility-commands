@@ -1,6 +1,6 @@
 {
   "name": "global-utilities",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "npm-global installed packages we need for our projects",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,20 +13,20 @@
   "devDependencies": {
     "cssbeautify-cli": "0.5.3",
     "csslint": "1.0.5",
-    "eslint": "10.0.3",
+    "eslint": "10.6.0",
     "grunt-cli": "1.5.0",
     "gulp-cli": "3.1.0",
-    "js-beautify": "1.15.4",
+    "js-beautify": "2.0.3",
     "json": "11.0.0",
     "less-cli": "1.0.0",
     "mocha-cli": "1.0.1",
     "npm-check": "6.0.1",
     "npm-packlist-cli": "1.0.0",
     "@gerhobbelt/npm-check-updates": "11.7.1-4",
-    "prettier": "3.8.1",
+    "prettier": "3.9.5",
     "prettyjson": "1.2.5",
     "@gerhobbelt/changelog": "1.4.2-13",
-    "sass": "1.97.3",
-    "typescript": "5.9.3"
+    "sass": "1.101.0",
+    "typescript": "7.0.2"
   }
 }
