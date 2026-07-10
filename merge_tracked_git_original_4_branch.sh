@@ -229,15 +229,50 @@ else
     h )
       cat <<EOT
 
-$0 <command-option> [<step-count>]
+$0 <command-option> [<step-count>] [<branch-to-merge>...]
 
-Auto-merge the commits in the tracked origin+original branches with the current branch.
+Auto-merge the commits in the tracked origin+original branches with the current 
+branch.
 
 Command Options:
 
 -m           : run the automaton
 
-<step-count> : (optional; default: 50) number of chunks to divide the commit list into: higher numbers produce smaller commit steps and reduce the risk of getting hard-to-decode collision sets, while lower numbers reduce the number of automated merges, thus cluttering the commit tree less with these.
+<step-count> : (optional; default: 50) number of chunks to divide the commit 
+               list into: higher numbers produce smaller commit steps and 
+               reduce the risk of getting hard-to-decode collision sets, while 
+			   lower numbers reduce the number of automated merges, thus 
+			   cluttering the commit tree less with these.
+			   
+<branch-to-merge>: (optional) one or more fully specified branch names to track
+               (instead of the default.)
+			   
+               When none are specified the default is to track to same-named
+			   branch in any remote which has `origin` (e.g. 'owner-original')
+			   as part of its remote's name. When your current branch is named
+			   `master` then both `master` and `main` branches in any 
+			   `.*origin.*` origin remotes are tracked and merged.
+			   To clarify, an example:
+			   Assume your currently checked out (= active) branch is called
+			   `featureX` and the known remotes are (`git remote -v`):
+			     origin
+			     ginny72
+				 goat-original
+				 AltFork-original
+			     BusterKeaton
+			   then these remotes will be checked for having a 'featureX' 
+			   branch:
+			     origin
+				 goat-original
+				 AltFork-original
+			   as these match the 'origin' regex.
+			   Now assume only the first and last have the 'featureX' branch,
+			   then the end result will be a (!semi-)automated merge of the
+			     origin/featureX
+				 AltFork-original/featureX
+			   remote branches.
+               This can be used to easily 'track' remote/original-mainline 
+               development branches in your (forked) own.
 
 EOT
       rv=1
