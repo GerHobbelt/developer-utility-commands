@@ -34,8 +34,8 @@ to see the online help for this utility script.
 EOT
   rv=2;
 else
-  while getopts ":hm" opt ; do
-    echo opt+arg = "$opt$OPTARG"
+  while getopts ":hmi" opt ; do
+    #echo opt+arg = "$opt$OPTARG"
     rv=4;
     case "$opt$OPTARG" in
     m )
@@ -226,6 +226,11 @@ else
       echo "All done! Processed all origin/original tracking branches!"
       ;;
 
+	i )
+      git remote -v | grep push | sed -E -e 's/\(push\)//' | column -t
+      echo ""
+	  ;;
+	  
     h )
       cat <<EOT
 
@@ -237,6 +242,7 @@ branch.
 Command Options:
 
 -m           : run the automaton
+-i           : list the currently known remote branches
 
 <step-count> : (optional; default: 50) number of chunks to divide the commit 
                list into: higher numbers produce smaller commit steps and 
@@ -248,13 +254,13 @@ Command Options:
                (instead of the default.)
 			   
                When none are specified the default is to track to same-named
-			   branch in any remote which has `origin` (e.g. 'owner-original')
+			   branch in any remote which has \`origin\` (e.g. 'owner-original')
 			   as part of its remote's name. When your current branch is named
-			   `master` then both `master` and `main` branches in any 
-			   `.*origin.*` origin remotes are tracked and merged.
+			   \`master\` then both \`master\` and \`main\` branches in any 
+			   \`.*origin.*\` origin remotes are tracked and merged.
 			   To clarify, an example:
 			   Assume your currently checked out (= active) branch is called
-			   `featureX` and the known remotes are (`git remote -v`):
+			   \`featureX\` and the known remotes are (\`git remote -v\`):
 			     origin
 			     ginny72
 				 goat-original
@@ -283,7 +289,10 @@ EOT
 
 ERROR: no commandline option specified. Run
   $0 -h
-to see the online help for this utility script.
+to see the online help for this utility script, plus
+  $0 -i
+to get the list of currently known remotes if you need a hint about those 
+as well.
 
 EOT
       rv=2
