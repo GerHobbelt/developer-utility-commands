@@ -37,8 +37,31 @@ if [ -z "$MODULE_NAME" ] ; then
 fi
 
 if ! [ -d $MODULE_NAME ] ; then
-	echo "The submodule relative path '$MODULE_NAME' you specified does not exist. Aborting."
-	exit 1
+	echo "The submodule relative path '$MODULE_NAME' you specified does not exist."
+	
+	if test -f .gitmodules ; then
+		echo "We proceed by inspecting the local .gitmodules file..."
+		if grep -E -e "path = $MODULE_NAME\$" .gitmodules ; then
+			echo "Path '$MODULE_NAME' was found in your local .gitmodules. Proceeding..."
+			
+			cat <<EOT
+
+Note:
+The next couple of git commands MAY complain. That's fine.
+They're here to make absolutely sure any lingering cruft
+in the git parent repo has been removed.
+
+EOT
+		else
+			echo "Path '$MODULE_NAME' was not found in your local .gitmodules. Aborting..."
+
+			exit 1
+		fi
+	else
+		echo "Aborting..."
+
+		exit 1
+	fi
 fi
 
 if test -f .git ; then
@@ -79,3 +102,9 @@ git config -f .gitmodules --remove-section submodule.$MODULE_NAME
 git config -f $DOTGIT_PATH/config --remove-section submodule.$MODULE_NAME
 rm -rf $DOTGIT_PATH/modules/$MODULE_NAME
 rm -rf $MODULE_NAME
+
+if ! test -s .gitmodules ; then
+	rm .gitmodules
+	echo "Removed empty .gitmodules in your PWD."
+fi
+
