@@ -106,9 +106,22 @@ else
       cat /tmp/git-branch-list.tmp | grep snyk-upgrade >> /tmp/git-branch-to-be-nuked-list.tmp
       cat /tmp/git-branch-list.tmp | grep perfdata     >> /tmp/git-branch-to-be-nuked-list.tmp
       cat /tmp/git-branch-list.tmp | grep imgbot       >> /tmp/git-branch-to-be-nuked-list.tmp
-      for f in $( cat /tmp/git-branch-to-be-nuked-list.tmp ) ; do git branch -dr $f ; done
+	  for f in $( cat /tmp/git-branch-to-be-nuked-list.tmp ) ; do git branch -dr $f ; done
 
-      cat /tmp/git-branch-list.tmp | grep -v dependabot | grep -v snyk-fix | grep -v snyk-upgrade | grep -v imgbot | grep -v perfdata > /tmp/git-branch-cleaned-list.tmp
+	  > /tmp/git-branch-to-be-nuked-list.accept.tmp
+	  > /tmp/git-branch-to-be-nuked-list.reject.tmp
+	  if [ -f .git-merge-tracked.accept ]; then
+		# remove comment lines and empty lines: the latter will screw us up by 'grep -v' matching *everything* so we must ensure only non-empty lines make it into the filter spec files!
+		grep -E -v -e '^#' -e "^\s*$" .git-merge-tracked.accept   > /tmp/git-branch-to-be-nuked-list.accept.tmp
+	  fi
+	  if [ -f .git-merge-tracked.reject ]; then
+		grep -E -v -e '^#' -e "^\s*$" .git-merge-tracked.reject   > /tmp/git-branch-to-be-nuked-list.reject.tmp
+	  fi
+	  #echo '-------------------'
+	  #cat /tmp/git-branch-to-be-nuked-list.reject.tmp
+	  #echo '-------------------'
+      cat /tmp/git-branch-list.tmp /tmp/git-branch-to-be-nuked-list.accept.tmp | sort -u | grep -v -f /tmp/git-branch-to-be-nuked-list.reject.tmp | grep -v dependabot | grep -v snyk-fix | grep -v snyk-upgrade | grep -v imgbot | grep -v perfdata > /tmp/git-branch-cleaned-list.1.tmp
+	  cat /tmp/git-branch-cleaned-list.1.tmp /tmp/git-branch-to-be-nuked-list.accept.tmp | sort -u > /tmp/git-branch-cleaned-list.tmp
 
       git gc --auto --prune
 
@@ -167,11 +180,11 @@ else
           echo "git rev-list --ancestry-path $anc..$f"
           git rev-list --ancestry-path $anc..$f | tac > /tmp/mtgo_tmp.txt
           # calc the number of commits to merge; then calculate the 'step' we need to ensure
-          # we'll be doing, at most, N(=50) merges.
+          # we'll be doing, at most, N(=8) merges.
           # Also make sure we do not merge *every commit* as that's way too much hassle too, so assume a minimum 'step' of, say, 5.
           lc=$( cat /tmp/mtgo_tmp.txt | wc -l )
           jmpc=$(( $lc / $STEPCOUNT ));
-          jmpcadj1=$(( $jmpc > 50 ? 50 : $jmpc ));
+          jmpcadj1=$(( $jmpc > 200 ? 200 : $jmpc ));
           jmpcadj=$(( $jmpcadj1 < 5 ? 5 : $jmpcadj1 ));
 
           #echo "lc=$lc"
@@ -244,7 +257,7 @@ Command Options:
 -m           : run the automaton
 -i           : list the currently known remote branches
 
-<step-count> : (optional; default: 50) number of chunks to divide the commit 
+<step-count> : (optional; default: 20) number of chunks to divide the commit 
                list into: higher numbers produce smaller commit steps and 
                reduce the risk of getting hard-to-decode collision sets, while 
 			   lower numbers reduce the number of automated merges, thus 
