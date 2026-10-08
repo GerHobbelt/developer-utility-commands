@@ -9,7 +9,7 @@
 #set -o xtrace 
 
 if [ -z "$*" ] ; then
-	find -type f -iregex '.*[.]\(rar\|zip\|7z\|tar[.]gz\|tar[.]bz2\|tar\)' -exec "$0" "{}" \;
+	find -type f -iregex '.*[.]\(rar\|zip\|7z\|xz\|tar[.]gz\|tar[.]bz2\|tar[.]xz\|tar\)' -exec "$0" "{}" \;
 else
 	echo "" 
 	echo "-----------------------------------------------------------------------------------" 
@@ -37,6 +37,50 @@ else
 		  fi
 		  ;;
 
+        *.tar.gz) 
+		  echo "Process TAR.GZ..."
+		  tar -xvzf "../$ZIPFILE"
+		  RETURN_CODE=$?
+		  echo "EXIT CODE: $RETURN_CODE"
+		  if [ "$RETURN_CODE" = 0 ] ; then
+			  echo "DELETE DEPACKED ARCHIVE FILE: $1"
+			  rm "../$ZIPFILE"
+		  fi
+		  ;;
+
+        *.tar.bz2) 
+		  echo "Process TAR.BZ2..."
+		  tar -xvjf "../$ZIPFILE"
+		  RETURN_CODE=$?
+		  echo "EXIT CODE: $RETURN_CODE"
+		  if [ "$RETURN_CODE" = 0 ] ; then
+			  echo "DELETE DEPACKED ARCHIVE FILE: $1"
+			  rm "../$ZIPFILE"
+		  fi
+		  ;;
+
+        *.tar.xz) 
+		  echo "Process TAR.XZ..."
+		  tar -xvJf "../$ZIPFILE"
+		  RETURN_CODE=$?
+		  echo "EXIT CODE: $RETURN_CODE"
+		  if [ "$RETURN_CODE" = 0 ] ; then
+			  echo "DELETE DEPACKED ARCHIVE FILE: $1"
+			  rm "../$ZIPFILE"
+		  fi
+		  ;;
+
+        *.tar) 
+		  echo "Process TAR..."
+		  tar -xvf "../$ZIPFILE"
+		  RETURN_CODE=$?
+		  echo "EXIT CODE: $RETURN_CODE"
+		  if [ "$RETURN_CODE" = 0 ] ; then
+			  echo "DELETE DEPACKED ARCHIVE FILE: $1"
+			  rm "../$ZIPFILE"
+		  fi
+		  ;;
+
 		*)
 		  /c/Program\ Files/7-Zip-Zstandard/7z.exe x -bt  "../$ZIPFILE"
 		  RETURN_CODE=$?
@@ -47,18 +91,6 @@ else
 		  fi
 		  ;;
 		esac
-
-		for tar in *.tar ; do
-		  if test -f "./$tar" ; then
-			/c/Program\ Files/7-Zip-Zstandard/7z.exe x -bt  "./$tar"
-			RETURN_CODE=$?
-			echo "EXIT CODE: $RETURN_CODE"
-			if [ "$RETURN_CODE" = 0 ] ; then
-				echo "DELETE DEPACKED TAR FILE: $tar"
-				rm "./$tar"
-			fi
-		  fi
-		done
 	fi
 	popd                                                              > /dev/null
 fi 
